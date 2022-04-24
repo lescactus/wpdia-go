@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -60,32 +61,17 @@ func NewWikiClient(baseURL, userAgent string) (*WikiClient, error) {
 func (w *WikiClient) GetExtract(id uint64) (*WikiTextExtractResponse, error) {
 	params := url.Values{}
 
-	params.Add("action", "query")
-	params.Add("format", "json")
 	params.Add("prop", "extracts")
 	params.Add("pageids", fmt.Sprint(id))
 	params.Add("exsentences", "10")
 	params.Add("explaintext", "1")
 	params.Add("exsectionformat", "plain")
 
-	req, err := http.NewRequest("GET", w.BaseURL.String()+"?"+params.Encode(), nil)
+	// Build http request
+	req, err := wikiRequestBuilder(params, w.BaseURL.String(), w.UserAgent)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(fmt.Sprintf("error while building http request: %v", err))
 	}
-
-	// According to https://www.mediawiki.org/wiki/API:Etiquette#The_User-Agent_header
-	// "
-	// It is best practice to set a descriptive User Agent header.
-	// To do so, use User-Agent: clientname/version (contact information e.g. username, email) framework/version....
-	// "
-	req.Header.Set("User-Agent", w.UserAgent)
-
-	// According to https://www.mediawiki.org/wiki/API:Data_formats
-	// "
-	// The API takes its input through parameters provided by the HTTP request in
-	// application/x-www-form-urlencoded or multipart/form-data format.
-	// "
-	req.Header.Set("Content-Type", "multipart/form-data")
 
 	resp, err := w.Client.Do(req)
 	if err != nil {
@@ -120,30 +106,15 @@ func (w *WikiClient) SearchTitle(title string) (uint64, error) {
 	// We only care about the first result of the search
 	// which should match what we are searching for
 	params.Add("srlimit", "1")
-	params.Add("action", "query")
-	params.Add("format", "json")
 	params.Add("list", "search")
 	params.Add("utf8", "1")
 	params.Add("srsearch", title)
 
-	req, err := http.NewRequest("GET", w.BaseURL.String()+"?"+params.Encode(), nil)
+	// Build http request
+	req, err := wikiRequestBuilder(params, w.BaseURL.String(), w.UserAgent)
 	if err != nil {
-		return 0, err
+		return 0, errors.New(fmt.Sprintf("error while building http request: %v", err))
 	}
-
-	// According to https://www.mediawiki.org/wiki/API:Etiquette#The_User-Agent_header
-	// "
-	// It is best practice to set a descriptive User Agent header.
-	// To do so, use User-Agent: clientname/version (contact information e.g. username, email) framework/version....
-	// "
-	req.Header.Set("User-Agent", w.UserAgent)
-
-	// According to https://www.mediawiki.org/wiki/API:Data_formats
-	// "
-	// The API takes its input through parameters provided by the HTTP request in
-	// application/x-www-form-urlencoded or multipart/form-data format.
-	// "
-	req.Header.Set("Content-Type", "multipart/form-data")
 
 	resp, err := w.Client.Do(req)
 	if err != nil {
@@ -171,4 +142,32 @@ func (w *WikiClient) SearchTitle(title string) (uint64, error) {
 func displayExtract(p Page) {
 	fmt.Println(p.Title)
 	fmt.Println(p.Extract)
+}
+
+func wikiRequestBuilder(params url.Values, baseURL, userAgent string) (*http.Request, error) {
+	// Common parameters for each requests to Wikipedia API
+	params.Add("action", "query")
+	params.Add("format", "json")
+
+	// URL encode the parameters
+	req, err := http.NewRequest("GET", baseURL+"?"+params.Encode(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// According to https://www.mediawiki.org/wiki/API:Etiquette#The_User-Agent_header
+	// "
+	// It is best practice to set a descriptive User Agent header.
+	// To do so, use User-Agent: clientname/version (contact information e.g. username, email) framework/version....
+	// "
+	req.Header.Set("User-Agent", userAgent)
+
+	// According to https://www.mediawiki.org/wiki/API:Data_formats
+	// "
+	// The API takes its input through parameters provided by the HTTP request in
+	// application/x-www-form-urlencoded or multipart/form-data format.
+	// "
+	req.Header.Set("Content-Type", "multipart/form-data")
+
+	return req, nil
 }

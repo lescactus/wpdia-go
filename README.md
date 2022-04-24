@@ -8,7 +8,7 @@ Very first draft.
 
 - [x] Improve http user agent 
 
-- [ ] Avoid code duplicate in http request builder
+- [x] Avoid code duplicate in http request builder
 
 - [ ] Parametrize `exsentences`, http timeout, etc ... (flag & env variable)
 

@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	version = "0.0.1"
+	version = "0.0.2"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -36,7 +36,8 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 
 			w, err := NewWikiClient(APIBaseURL, "")
 			if err != nil {
-				panic(err)
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
 			}
 
 			// Get the id of the page requested
