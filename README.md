@@ -14,12 +14,12 @@ Very first draft.
 
 - [ ] Output flag: `table`, `json`, etc...
 
-- [ ] Language support
+- [x] Language support
 
 - [ ] Implement "random article" 
 
 - [ ] Fix 'may refer to:'
 
-- [ ] Improve base url
+- [x] Improve base url
 
 - [ ] Dockerize
