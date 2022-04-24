@@ -10,15 +10,25 @@ import (
 )
 
 const (
-	defaultUserAgent = "github.com/lescactus/wpdia-go"
+	// defaultUserAgent is the http User-Agent used by default.
+	//
+	// The API etiquette of the MediaWiki API ask clients to provide an informative User-Agent.
+	// The generic format is <client name>/<version> (<contact information>) <library/framework name>/<version> [<library name>/<version> ...]
+	//
+	// Ref: https://meta.wikimedia.org/wiki/User-Agent_policy
+	defaultUserAgent = "wpdia-go/" + version + " (github.com/lescactus/wpdia-go) WikiClient/" + version
 )
 
+// WikiClient represents the API client
 type WikiClient struct {
 	BaseURL   *url.URL
 	UserAgent string
 	Client    *http.Client
 }
 
+// NewWikiClient creates a new WikiClient with a given API base URL and http User-Agent.
+// When the User-Agent is empty, it uses a default one.
+// It returns a WikiClient or any error encountered
 func NewWikiClient(baseURL, userAgent string) (*WikiClient, error) {
 	// Ensure the base URL is valid
 	url, err := url.Parse(baseURL)
@@ -26,11 +36,13 @@ func NewWikiClient(baseURL, userAgent string) (*WikiClient, error) {
 		return nil, err
 	}
 
+	// If empty, the User-Agent provided as a parameter will be set with a default value
+	// If not empty, the User-Agent provided as a parameter will be merged to the default one
 	var ua string
 	if userAgent == "" {
 		ua = defaultUserAgent
 	} else {
-		ua = userAgent
+		ua = userAgent + defaultUserAgent
 	}
 
 	return &WikiClient{

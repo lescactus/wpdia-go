@@ -2,20 +2,24 @@ Very first draft.
 
 **TODO:**
 
-* Improve display
+- [ ] Improve display
 
-* Document
+- [ ] Document
 
-* Improve http user agent
+- [x] Improve http user agent 
 
-* Avoid code duplicate in http request builder
+- [ ] Avoid code duplicate in http request builder
 
-* Parametrize `exsentences` (flag & env variable)
+- [ ] Parametrize `exsentences`, http timeout, etc ... (flag & env variable)
 
-* Output flag: `table`, `json`, etc...
+- [ ] Output flag: `table`, `json`, etc...
 
-* Language support
+- [ ] Language support
 
-* Implement "random article" 
+- [ ] Implement "random article" 
 
-* Fix 'may refer to:'
+- [ ] Fix 'may refer to:'
+
+- [ ] Improve base url
+
+- [ ] Dockerize
