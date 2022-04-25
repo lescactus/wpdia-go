@@ -29,6 +29,7 @@ Flags:
   -s, --exsentences string   How many sentences to return from Wikipedia. Must be between 1 and 10. If > 10, then default to 10. Mutually exclusive with 'exintro'. (default "10")
   -h, --help                 help for wpdia-go
   -l, --lang string          Language. This will set the API endpoint used to retrieve data. (default "en")
+  -t, --timeout duration     Timeout value of the http client to the Wikipedia API. Examples values: '10s', '500ms' (default 15s)
 ```
 ## Installation
 
@@ -83,7 +84,7 @@ docker run --rm wpdia-go "Rammstein"
 
 - [x] Avoid code duplicate in http request builder
 
-- [ ] Parametrize `exsentences`, http timeout, etc ... (flag & env variable)
+- [x] Parametrize `exsentences`, http timeout, etc ... (flag & env variable)
 
 - [ ] Output flag: `table`, `json`, etc...
 

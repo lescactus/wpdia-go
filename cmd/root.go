@@ -3,12 +3,13 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 )
 
 const (
-	version = "0.0.3"
+	version = "0.0.4"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -17,6 +18,7 @@ var (
 	APIBaseURL  string
 	exsentences string
 	exintro     bool
+	timeout     time.Duration
 
 	rootCmd = &cobra.Command{
 		Use:   "wpdia-go",
@@ -86,6 +88,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&lang, "lang", "l", "en", "Language. This will set the API endpoint used to retrieve data.")
 	rootCmd.PersistentFlags().StringVarP(&exsentences, "exsentences", "s", "10", "How many sentences to return from Wikipedia. Must be between 1 and 10. If > 10, then default to 10. Mutually exclusive with 'exintro'.")
 	rootCmd.PersistentFlags().BoolVarP(&exintro, "exintro", "i", true, "Return only content before the first section. Mutually exclusive with 'exsentences'.")
+	rootCmd.PersistentFlags().DurationVarP(&timeout, "timeout", "t", 15*time.Second, "Timeout value of the http client to the Wikipedia API. Examples values: '10s', '500ms'")
 
 	cobra.OnInitialize(initConfig)
 }

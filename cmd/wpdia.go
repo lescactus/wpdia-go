@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"time"
 )
 
 const (
@@ -53,7 +52,7 @@ func NewWikiClient(baseURL, userAgent string) (*WikiClient, error) {
 			Transport:     nil,
 			CheckRedirect: nil,
 			Jar:           nil,
-			Timeout:       15 * time.Second,
+			Timeout:       timeout,
 		},
 	}, nil
 }
