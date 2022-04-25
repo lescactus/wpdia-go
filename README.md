@@ -2,8 +2,12 @@
 
 This repository contains a simple cli written in go used to get the description of a given text in Wikipedia.
 
-It takes in argument a given text and will retrieve the extract of page content using the 
-TextExtracts API (https://www.mediawiki.org/wiki/Extension:TextExtracts#API).
+It takes in argument a given text and will retrieve the extract of page content using the TextExtracts API (https://www.mediawiki.org/wiki/Extension:TextExtracts#API).
+
+
+`wpdia-go` allow to either return the content from Wikipedia before the first section (typically the text block before the table of contents): `exintro` or a given number of sentences between 1 and 10: `exsentences`.
+
+Note that the [`TextExtracts` API](https://www.mediawiki.org/wiki/Extension:TextExtracts#API) recommends not to use `exsentences` as it does not work for HTML extracts and there are many edge cases for which it doesn't exist. For example "Arm. gen. Ing. John Smith was a soldier." will be treated as 4 sentences.
 
 ## Usage
 
@@ -21,8 +25,10 @@ Usage:
   wpdia-go [flags]
 
 Flags:
-  -h, --help          help for wpdia-go
-  -l, --lang string   Language. This will set the API endpoint used to retrieve data. (default "en")
+  -i, --exintro              Return only content before the first section. Mutually exclusive with 'exsentences'. (default true)
+  -s, --exsentences string   How many sentences to return from Wikipedia. Must be between 1 and 10. If > 10, then default to 10. Mutually exclusive with 'exintro'. (default "10")
+  -h, --help                 help for wpdia-go
+  -l, --lang string          Language. This will set the API endpoint used to retrieve data. (default "en")
 ```
 ## Installation
 

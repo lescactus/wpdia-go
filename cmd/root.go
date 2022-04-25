@@ -8,13 +8,15 @@ import (
 )
 
 const (
-	version = "0.0.2"
+	version = "0.0.3"
 )
 
 // rootCmd represents the base command when called without any subcommands
 var (
-	lang       string
-	APIBaseURL string
+	lang        string
+	APIBaseURL  string
+	exsentences string
+	exintro     bool
 
 	rootCmd = &cobra.Command{
 		Use:   "wpdia-go",
@@ -53,6 +55,12 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 				os.Exit(1)
 			}
 
+			// User has set 'exsentences' which is mutually exclusive with 'exintro'
+			// Disable 'exintro'
+			if cmd.Flag("exsentences").Changed {
+				exintro = false
+			}
+
 			extract, err := w.GetExtract(id)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
@@ -76,6 +84,8 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&lang, "lang", "l", "en", "Language. This will set the API endpoint used to retrieve data.")
+	rootCmd.PersistentFlags().StringVarP(&exsentences, "exsentences", "s", "10", "How many sentences to return from Wikipedia. Must be between 1 and 10. If > 10, then default to 10. Mutually exclusive with 'exintro'.")
+	rootCmd.PersistentFlags().BoolVarP(&exintro, "exintro", "i", true, "Return only content before the first section. Mutually exclusive with 'exsentences'.")
 
 	cobra.OnInitialize(initConfig)
 }

@@ -63,9 +63,17 @@ func (w *WikiClient) GetExtract(id uint64) (*WikiTextExtractResponse, error) {
 
 	params.Add("prop", "extracts")
 	params.Add("pageids", fmt.Sprint(id))
-	params.Add("exsentences", "10")
 	params.Add("explaintext", "1")
 	params.Add("exsectionformat", "plain")
+
+	// 'exintro' is mutually exclusive with 'exsentences'
+	// Either we return only the content before the first section
+	// or we return a given number of sentences
+	if exintro {
+		params.Add("exintro", "1")
+	} else {
+		params.Add("exsentences", exsentences)
+	}
 
 	// Build http request
 	req, err := wikiRequestBuilder(params, w.BaseURL.String(), w.UserAgent)
