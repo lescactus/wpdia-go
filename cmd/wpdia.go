@@ -57,6 +57,8 @@ func NewWikiClient(baseURL, userAgent string) (*WikiClient, error) {
 	}, nil
 }
 
+// GetExtract will invoke the Wikipedia's TextExtracts's API to extract the text of the given page id.
+// It takes in argument the page id to request and will return the response or any error encountered.
 func (w *WikiClient) GetExtract(id uint64) (*WikiTextExtractResponse, error) {
 	params := url.Values{}
 
@@ -146,11 +148,20 @@ func (w *WikiClient) SearchTitle(title string) (uint64, error) {
 	return s.Query.Search[0].Pageid, nil
 }
 
+// displayExtract is a printer function for a Page.
 func displayExtract(p Page) {
 	fmt.Println(p.Title)
 	fmt.Println(p.Extract)
 }
 
+// wikiRequestBuilder is used to build a http request to the Wikipedia's API.
+// It will create a http GET request with:
+// - a set of standard http parameters in addition to the one passed to the function,
+// - a User-Agent http header to follow the best practice and etiquette for the use of Wikipedia's API,
+// - a valid Content-Type http header
+//
+// The function takes as argument a set of url query parameters, the base URL and the User-Agent.
+// It returns a *http.Request or any error encountered.
 func wikiRequestBuilder(params url.Values, baseURL, userAgent string) (*http.Request, error) {
 	// Common parameters for each requests to Wikipedia API
 	params.Add("action", "query")
