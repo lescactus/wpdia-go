@@ -42,6 +42,30 @@ go build
 ./wpdia-go -h
 ```
 
+### From source with docker
+
+If you don't have [go](https://golang.org/) installed but have docker, run the following command to build inside a docker container:
+
+```sh
+# Build from sources inside a docker container. Use the '-o' flag to change the compiled binary name
+# Warning: the compiled binary belongs to root:root
+docker run --rm -it -v "$PWD":/app -w /app golang:1.16 go build
+
+# Default compiled binary is dict-go
+# You can optionnaly move it somewhere in your $PATH to access it shell wide
+./wpdia-go -h
+```
+
+### From source with docker but built inside a docker image
+
+If you don't want to pollute your computer with another program, this cli comes with its own docker image:
+
+```sh
+docker build -t wpdia-go .
+
+docker run --rm wpdia-go "Rammstein"
+```
+
 ---
 **TODO:**
 
@@ -65,4 +89,4 @@ go build
 
 - [x] Improve base url
 
-- [ ] Dockerize
+- [x] Dockerize
