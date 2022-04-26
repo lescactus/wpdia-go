@@ -7,6 +7,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"github.com/charmbracelet/glamour"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -148,12 +151,6 @@ func (w *WikiClient) SearchTitle(title string) (uint64, error) {
 	return s.Query.Search[0].Pageid, nil
 }
 
-// displayExtract is a printer function for a Page.
-func displayExtract(p Page) {
-	fmt.Println(p.Title)
-	fmt.Println(p.Extract)
-}
-
 // wikiRequestBuilder is used to build a http request to the Wikipedia's API.
 // It will create a http GET request with:
 // - a set of standard http parameters in addition to the one passed to the function,
@@ -188,4 +185,71 @@ func wikiRequestBuilder(params url.Values, baseURL, userAgent string) (*http.Req
 	req.Header.Set("Content-Type", "multipart/form-data")
 
 	return req, nil
+}
+
+// plainDisplayExtract is simple a printer function for a Page.
+func plainDisplayExtract(p Page) {
+	fmt.Printf("Title:\n  %s\n\n", p.Title)
+	fmt.Printf("Extract:\n  %s", p.Extract)
+}
+
+// prettyDisplayExtract is a printer function for a Page using the glamour library.
+// It returns any error encountered.
+func prettyDisplayExtract(p Page) error {
+	r, err := glamour.NewTermRenderer(
+		// detect background color and pick either the default dark or light theme
+		glamour.WithAutoStyle(),
+		// wrap output at specific width
+		glamour.WithWordWrap(100),
+	)
+	if err != nil {
+		return err
+	}
+
+	out, err := r.Render("## " + p.Title)
+	if err != nil {
+		return err
+	}
+	fmt.Print(out)
+
+	out, err = r.Render(p.Extract)
+	if err != nil {
+		return err
+	}
+	fmt.Print(out)
+
+	return nil
+}
+
+// jsonDisplayExtract is a printer function for a Page formatting in json.
+// It returns any error encountered.
+func jsonDisplayExtract(p Page) error {
+	// Nullify these fields as we are not interested in displaying them
+	p.Ns = 0
+	p.Pageid = 0
+
+	b, err := json.MarshalIndent(p, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(b))
+
+	return nil
+}
+
+// yamlDisplayExtract is a printer function for a Page formatting in yaml.
+// It returns any error encountered.
+func yamlDisplayExtract(p Page) error {
+	// Nullify these fields as we are not interested in displaying them
+	p.Ns = 0
+	p.Pageid = 0
+
+	d, err := yaml.Marshal(&p)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%s\n", string(d))
+
+	return nil
 }

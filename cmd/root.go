@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -9,17 +10,24 @@ import (
 )
 
 const (
-	version = "0.0.4"
+	version = "0.0.5"
 )
 
-// rootCmd represents the base command when called without any subcommands
 var (
-	lang        string
-	APIBaseURL  string
-	exsentences string
-	exintro     bool
-	timeout     time.Duration
+	// Base URL of the Wikipedia API
+	APIBaseURL string
 
+	// Flags
+	timeout     time.Duration // http client timeout
+	lang        string        // language of the Wikipedia page
+	output      string        // output formatter of the program
+	exsentences string        // number of sentences to return from a page
+	exintro     bool          // whether or not to only the intro of a page
+
+	// validOutputs represents the authorized values for the 'output' flag
+	validOutputs = []string{"plain", "pretty", "json", "yaml"}
+
+	// rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
 		Use:   "wpdia-go",
 		Short: "Simple cli used to get the description of a given text in Wikipedia",
@@ -32,12 +40,14 @@ For multi-word search, enclose them using double quotes: "<multi word search>".
 
 The source code is available at https://github.com/lescactus/wpedia-go.`,
 
-		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) != 1 {
-				fmt.Fprintf(os.Stderr, "Error: expected 1 argument, got %d\n", len(args))
-				os.Exit(1)
-			}
+		// Ensure the 'output' flag value is valid
+		PreRun: validateOutputFlag,
 
+		// Only one argument is allowed
+		Args: cobra.ExactArgs(1),
+
+		// Main work function
+		Run: func(cmd *cobra.Command, args []string) {
 			w, err := NewWikiClient(APIBaseURL, "")
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
@@ -69,8 +79,30 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 				os.Exit(1)
 			}
 
-			displayExtract(extract.Query.Pages[fmt.Sprint(id)])
-
+			switch output {
+			case "plain":
+				plainDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
+			case "pretty":
+				err = prettyDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
+				if err != nil {
+					fmt.Fprintln(os.Stderr, err)
+					os.Exit(1)
+				}
+			case "json":
+				err = jsonDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
+				if err != nil {
+					fmt.Fprintln(os.Stderr, err)
+					os.Exit(1)
+				}
+			case "yaml":
+				err = yamlDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
+				if err != nil {
+					fmt.Fprintln(os.Stderr, err)
+					os.Exit(1)
+				}
+			default:
+				plainDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
+			}
 		},
 	}
 )
@@ -89,6 +121,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&exsentences, "exsentences", "s", "10", "How many sentences to return from Wikipedia. Must be between 1 and 10. If > 10, then default to 10. Mutually exclusive with 'exintro'.")
 	rootCmd.PersistentFlags().BoolVarP(&exintro, "exintro", "i", true, "Return only content before the first section. Mutually exclusive with 'exsentences'.")
 	rootCmd.PersistentFlags().DurationVarP(&timeout, "timeout", "t", 15*time.Second, "Timeout value of the http client to the Wikipedia API. Examples values: '10s', '500ms'")
+	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "plain", fmt.Sprintf("Output type. Valid choices are %v.", validOutputs))
 
 	cobra.OnInitialize(initConfig)
 }
@@ -96,4 +129,13 @@ func init() {
 func initConfig() {
 	// Set the API base URL corresponding to the desired language
 	APIBaseURL = fmt.Sprintf("https://%s.wikipedia.org/w/api.php", lang)
+}
+
+// validateOutputFlag will determine whether the given value of the 'output' flag is valid.
+// It exit the program with an error if not.
+func validateOutputFlag(cmd *cobra.Command, args []string) {
+	if !isPresent(validOutputs, output) {
+		fmt.Fprintln(os.Stderr, errors.New(fmt.Sprintf("error: invalid value for flag 'output'. Valid values are %v", validOutputs)))
+		os.Exit(1)
+	}
 }

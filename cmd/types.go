@@ -32,8 +32,8 @@ type WikiTextExtractResponse struct {
 // Page represents the page section of the Wikipedia's TextExtracts API response
 // Documentation is found here: https://www.mediawiki.org/wiki/Extension:TextExtracts#API
 type Page struct {
-	Pageid  int    `json:"pageid"`
-	Ns      int    `json:"ns"`
+	Pageid  int    `json:"pageid,omitempty" yaml:"pageid,omitempty"`
+	Ns      int    `json:"ns,omitempty" yaml:"ns,omitempty"`
 	Title   string `json:"title"`
 	Extract string `json:"extract"`
 }

@@ -86,7 +86,7 @@ docker run --rm wpdia-go "Rammstein"
 
 - [x] Parametrize `exsentences`, http timeout, etc ... (flag & env variable)
 
-- [ ] Output flag: `table`, `json`, etc...
+- [x] Output flag: `table`, `json`, etc...
 
 - [x] Language support
 
@@ -97,3 +97,7 @@ docker run --rm wpdia-go "Rammstein"
 - [x] Improve base url
 
 - [x] Dockerize
+
+- [ ] Debug flag (show page id, ns, timestamps, etc...)
+
+- [ ] Verbose logs
