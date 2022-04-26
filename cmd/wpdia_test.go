@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"bytes"
-	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
@@ -142,123 +140,6 @@ func TestWikiRequestBuilder(t *testing.T) {
 
 			assert.EqualValues(t, tt.want, got)
 			assert.NoError(t, err)
-		})
-	}
-}
-
-func TestPlainDisplayExtract(t *testing.T) {
-	type args struct {
-		p Page
-	}
-	tests := []struct {
-		desc string
-		args args
-		want string
-	}{
-		{
-			desc: "",
-			args: args{p: page},
-			want: fmt.Sprintf("Title:\n  %s\n\nExtract:\n  %s", page.Title, page.Extract),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.desc, func(t *testing.T) {
-			var out bytes.Buffer
-			plainDisplayExtract(&out, tt.args.p)
-
-			assert.Equal(t, tt.want, out.String())
-		})
-	}
-}
-
-func TestPrettyDisplayExtract(t *testing.T) {
-	type args struct {
-		p Page
-	}
-	tests := []struct {
-		desc string
-		args args
-		want string
-	}{
-		{
-			desc: "",
-			args: args{p: page},
-			want: fmt.Sprintf(`
-  ## %s
-
-
-  %s
-`, page.Title, page.Extract),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.desc, func(t *testing.T) {
-			var out bytes.Buffer
-			err := prettyDisplayExtract(&out, tt.args.p)
-
-			assert.NoError(t, err)
-			assert.NotEmpty(t, out)
-		})
-	}
-}
-
-func TestYamlDisplayExtract(t *testing.T) {
-	type args struct {
-		p Page
-	}
-	tests := []struct {
-		desc string
-		args args
-		want string
-	}{
-		{
-			desc: "",
-			args: args{p: page},
-			want: fmt.Sprintf(`title: %s
-extract: Go is a statically typed, compiled programming language designed at Google
-  by Robert Griesemer, Rob Pike, and Ken Thompson.
-
-`, page.Title),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.desc, func(t *testing.T) {
-			var out bytes.Buffer
-			err := yamlDisplayExtract(&out, tt.args.p)
-
-			assert.NoError(t, err)
-			assert.NotEmpty(t, out)
-			assert.Equal(t, tt.want, out.String())
-		})
-	}
-}
-
-func TestJsonDisplayExtract(t *testing.T) {
-	type args struct {
-		p Page
-	}
-	tests := []struct {
-		desc string
-		args args
-		want string
-	}{
-		{
-			desc: "",
-			args: args{p: page},
-			want: fmt.Sprintf(`{
-    "title": "%s",
-    "extract": "%s"
-}
-`, page.Title, page.Extract),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.desc, func(t *testing.T) {
-			var out bytes.Buffer
-			err := jsonDisplayExtract(&out, tt.args.p)
-
-			assert.NoError(t, err)
-			assert.Equal(t, tt.want, out.String())
 		})
 	}
 }

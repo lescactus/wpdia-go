@@ -4,13 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	"github.com/charmbracelet/glamour"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -186,75 +182,4 @@ func wikiRequestBuilder(params url.Values, baseURL, userAgent string) (*http.Req
 	req.Header.Set("Content-Type", "multipart/form-data")
 
 	return req, nil
-}
-
-// plainDisplayExtract is simple a printer function for a Page.
-// It takes in argument a io.Writer to write into and a page.
-func plainDisplayExtract(w io.Writer, p Page) {
-	fmt.Fprintf(w, "Title:\n  %s\n\n", p.Title)
-	fmt.Fprintf(w, "Extract:\n  %s", p.Extract)
-}
-
-// prettyDisplayExtract is a printer function for a Page using the glamour library.
-// It takes in argument a io.Writer to write into and a page.
-// It returns any error encountered.
-func prettyDisplayExtract(w io.Writer, p Page) error {
-	r, err := glamour.NewTermRenderer(
-		// detect background color and pick either the default dark or light theme
-		glamour.WithAutoStyle(),
-		// wrap output at specific width
-		glamour.WithWordWrap(100),
-	)
-	if err != nil {
-		return err
-	}
-
-	out, err := r.Render("## " + p.Title)
-	if err != nil {
-		return err
-	}
-	fmt.Fprint(w, out)
-
-	out, err = r.Render(p.Extract)
-	if err != nil {
-		return err
-	}
-	fmt.Fprint(w, out)
-
-	return nil
-}
-
-// jsonDisplayExtract is a printer function for a Page formatting in json.
-// It takes in argument a io.Writer to write into and a page.
-// It returns any error encountered.
-func jsonDisplayExtract(w io.Writer, p Page) error {
-	// Nullify these fields as we are not interested in displaying them
-	p.Ns = 0
-	p.Pageid = 0
-
-	b, err := json.MarshalIndent(p, "", "    ")
-	if err != nil {
-		return err
-	}
-
-	fmt.Fprintln(w, string(b))
-
-	return nil
-}
-
-// yamlDisplayExtract is a printer function for a Page formatting in yaml.
-// It takes in argument a io.Writer to write into and a page.
-// It returns any error encountered.
-func yamlDisplayExtract(w io.Writer, p Page) error {
-	// Nullify these fields as we are not interested in displaying them
-	p.Ns = 0
-	p.Pageid = 0
-
-	d, err := yaml.Marshal(&p)
-	if err != nil {
-		return err
-	}
-	fmt.Fprintf(w, "%s\n", string(d))
-
-	return nil
 }
