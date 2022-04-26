@@ -78,30 +78,26 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
+			page := extract.Query.Pages[fmt.Sprint(id)]
 
+			// Output formatter options
+			var d Displayer
 			switch output {
 			case "plain":
-				plainDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
+				d = NewPlainFormat()
 			case "pretty":
-				err = prettyDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
-				if err != nil {
-					fmt.Fprintln(os.Stderr, err)
-					os.Exit(1)
-				}
+				d = NewPrettyFormat(100)
 			case "json":
-				err = jsonDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
-				if err != nil {
-					fmt.Fprintln(os.Stderr, err)
-					os.Exit(1)
-				}
+				d = NewJsonFormat("", "    ")
 			case "yaml":
-				err = yamlDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
-				if err != nil {
-					fmt.Fprintln(os.Stderr, err)
-					os.Exit(1)
-				}
-			default:
-				plainDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
+				d = NewYamlFormat()
+			}
+
+			// Write extract to the terminal
+			d.Write(os.Stdout, &page)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
 			}
 		},
 	}
