@@ -82,27 +82,27 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 			// Output formatter options
 			switch output {
 			case "plain":
-				plainDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
+				plainDisplayExtract(os.Stdout, extract.Query.Pages[fmt.Sprint(id)])
 			case "pretty":
-				err = prettyDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
+				err = prettyDisplayExtract(os.Stdout, extract.Query.Pages[fmt.Sprint(id)])
 				if err != nil {
 					fmt.Fprintln(os.Stderr, err)
 					os.Exit(1)
 				}
 			case "json":
-				err = jsonDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
+				err = jsonDisplayExtract(os.Stdout, extract.Query.Pages[fmt.Sprint(id)])
 				if err != nil {
 					fmt.Fprintln(os.Stderr, err)
 					os.Exit(1)
 				}
 			case "yaml":
-				err = yamlDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
+				err = yamlDisplayExtract(os.Stdout, extract.Query.Pages[fmt.Sprint(id)])
 				if err != nil {
 					fmt.Fprintln(os.Stderr, err)
 					os.Exit(1)
 				}
 			default:
-				plainDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])
+				plainDisplayExtract(os.Stdout, extract.Query.Pages[fmt.Sprint(id)])
 			}
 		},
 	}

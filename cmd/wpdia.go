@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -188,14 +189,16 @@ func wikiRequestBuilder(params url.Values, baseURL, userAgent string) (*http.Req
 }
 
 // plainDisplayExtract is simple a printer function for a Page.
-func plainDisplayExtract(p Page) {
-	fmt.Printf("Title:\n  %s\n\n", p.Title)
-	fmt.Printf("Extract:\n  %s", p.Extract)
+// It takes in argument a io.Writer to write into and a page.
+func plainDisplayExtract(w io.Writer, p Page) {
+	fmt.Fprintf(w, "Title:\n  %s\n\n", p.Title)
+	fmt.Fprintf(w, "Extract:\n  %s", p.Extract)
 }
 
 // prettyDisplayExtract is a printer function for a Page using the glamour library.
+// It takes in argument a io.Writer to write into and a page.
 // It returns any error encountered.
-func prettyDisplayExtract(p Page) error {
+func prettyDisplayExtract(w io.Writer, p Page) error {
 	r, err := glamour.NewTermRenderer(
 		// detect background color and pick either the default dark or light theme
 		glamour.WithAutoStyle(),
@@ -210,20 +213,21 @@ func prettyDisplayExtract(p Page) error {
 	if err != nil {
 		return err
 	}
-	fmt.Print(out)
+	fmt.Fprint(w, out)
 
 	out, err = r.Render(p.Extract)
 	if err != nil {
 		return err
 	}
-	fmt.Print(out)
+	fmt.Fprint(w, out)
 
 	return nil
 }
 
 // jsonDisplayExtract is a printer function for a Page formatting in json.
+// It takes in argument a io.Writer to write into and a page.
 // It returns any error encountered.
-func jsonDisplayExtract(p Page) error {
+func jsonDisplayExtract(w io.Writer, p Page) error {
 	// Nullify these fields as we are not interested in displaying them
 	p.Ns = 0
 	p.Pageid = 0
@@ -233,14 +237,15 @@ func jsonDisplayExtract(p Page) error {
 		return err
 	}
 
-	fmt.Println(string(b))
+	fmt.Fprintln(w, string(b))
 
 	return nil
 }
 
 // yamlDisplayExtract is a printer function for a Page formatting in yaml.
+// It takes in argument a io.Writer to write into and a page.
 // It returns any error encountered.
-func yamlDisplayExtract(p Page) error {
+func yamlDisplayExtract(w io.Writer, p Page) error {
 	// Nullify these fields as we are not interested in displaying them
 	p.Ns = 0
 	p.Pageid = 0
@@ -249,7 +254,7 @@ func yamlDisplayExtract(p Page) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s\n", string(d))
+	fmt.Fprintf(w, "%s\n", string(d))
 
 	return nil
 }

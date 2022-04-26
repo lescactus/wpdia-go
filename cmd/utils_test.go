@@ -19,7 +19,7 @@ func TestIsPresent(t *testing.T) {
 		{
 			desc: "String is present in slice",
 			args: args{
-				s: []string{"foo", "bar"},
+				s:   []string{"foo", "bar"},
 				str: "foo",
 			},
 			want: true,
@@ -27,7 +27,7 @@ func TestIsPresent(t *testing.T) {
 		{
 			desc: "String is not present in slice",
 			args: args{
-				s: []string{"foo", "bar"},
+				s:   []string{"foo", "bar"},
 				str: "xxx",
 			},
 			want: false,
@@ -35,7 +35,7 @@ func TestIsPresent(t *testing.T) {
 		{
 			desc: "Slice is empty",
 			args: args{
-				s: []string{},
+				s:   []string{},
 				str: "xxx",
 			},
 			want: false,
@@ -50,5 +50,5 @@ func TestIsPresent(t *testing.T) {
 			assert.Equal(t, tt.want, res)
 		})
 	}
-	
+
 }
