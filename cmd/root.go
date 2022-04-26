@@ -79,6 +79,7 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 				os.Exit(1)
 			}
 
+			// Output formatter options
 			switch output {
 			case "plain":
 				plainDisplayExtract(extract.Query.Pages[fmt.Sprint(id)])

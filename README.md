@@ -194,7 +194,7 @@ Google's self-hosting "gc" compiler toolchain, targeting multiple operating syst
 gofrontend, a frontend to other compilers, with the libgo library. With GCC the combination is gccgo; with LLVM the combination is gollvm.A third-party source-to-source compiler, GopherJS, compiles Go to JavaScript for front-end web development.
 ```
 
-### HTTP client timeout set to 500ms + json output + only 3 sentences + french language
+### HTTP client timeout set to 500ms + json output + only 3 sentences + French language
 
 ```
 ./wpdia-go --timeout 500ms --output json --exsentences 3 --lang fr golang 
@@ -207,7 +207,7 @@ gofrontend, a frontend to other compilers, with the libgo library. With GCC the 
 ---
 **TODO:**
 
-- [ ] Improve display
+- [x] Improve display
 
 - [x] Improve documentation
 
