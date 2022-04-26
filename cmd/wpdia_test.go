@@ -143,3 +143,71 @@ func TestWikiRequestBuilder(t *testing.T) {
 		})
 	}
 }
+
+func TestNewWikiClient(t *testing.T) {
+	type args struct {
+		baseURL   string
+		userAgent string
+	}
+	tests := []struct {
+		desc    string
+		args    args
+		want    *WikiClient
+		wantErr bool
+	}{
+		{
+			desc: "BaseURL and UserAgent are set and valid",
+			args: args{baseURL: "https://api.example.com", userAgent: "Custom/User-Agent"},
+			want: &WikiClient{
+				BaseURL: &url.URL{
+					Scheme: "https",
+					Host:   "api.example.com",
+				},
+				UserAgent: "Custom/User-Agent" + defaultUserAgent,
+				Client: &http.Client{
+					Transport:     nil,
+					CheckRedirect: nil,
+					Jar:           nil,
+					Timeout:       timeout,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			desc: "BaseURL is set and valid, UserAgent is not set",
+			args: args{baseURL: "https://api.example.com", userAgent: ""},
+			want: &WikiClient{
+				BaseURL: &url.URL{
+					Scheme: "https",
+					Host:   "api.example.com",
+				},
+				UserAgent: defaultUserAgent,
+				Client: &http.Client{
+					Transport:     nil,
+					CheckRedirect: nil,
+					Jar:           nil,
+					Timeout:       timeout,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			desc:    "BaseURL is set and invalid, UserAgent is not set",
+			args:    args{baseURL: "\ninvalid url", userAgent: ""},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			got, err := NewWikiClient(tt.args.baseURL, tt.args.userAgent)
+
+			assert.Equal(t, tt.want, got)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
