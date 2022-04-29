@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	version = "0.0.5"
+	version = "0.0.6"
 )
 
 var (
@@ -23,6 +23,7 @@ var (
 	output      string        // output formatter of the program
 	exsentences string        // number of sentences to return from a page
 	exintro     bool          // whether or not to only the intro of a page
+	fullOutput  bool          // whether or not to output also the page namespace and page id
 
 	// validOutputs represents the authorized values for the 'output' flag
 	validOutputs = []string{"plain", "pretty", "json", "yaml"}
@@ -94,7 +95,7 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 			}
 
 			// Write extract to the terminal
-			d.Write(os.Stdout, &page)
+			d.Write(os.Stdout, &page, fullOutput)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
@@ -118,6 +119,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&exintro, "exintro", "i", true, "Return only content before the first section. Mutually exclusive with 'exsentences'.")
 	rootCmd.PersistentFlags().DurationVarP(&timeout, "timeout", "t", 15*time.Second, "Timeout value of the http client to the Wikipedia API. Examples values: '10s', '500ms'")
 	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "plain", fmt.Sprintf("Output type. Valid choices are %v.", validOutputs))
+	rootCmd.PersistentFlags().BoolVarP(&fullOutput, "full", "f", false, "Also print the page Namespace and page ID.")
 
 	cobra.OnInitialize(initConfig)
 }

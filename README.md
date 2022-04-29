@@ -229,6 +229,6 @@ gofrontend, a frontend to other compilers, with the libgo library. With GCC the 
 
 - [x] Dockerize
 
-- [ ] Debug flag (show page id, ns, timestamps, etc...)
+- [x] Debug flag (show page id, ns, timestamps, etc...)
 
 - [ ] Verbose logs
