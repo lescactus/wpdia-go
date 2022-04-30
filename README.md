@@ -31,6 +31,8 @@ Flags:
   -h, --help                 help for wpdia-go
   -l, --lang string          Language. This will set the API endpoint used to retrieve data. (default "en")
   -o, --output string        Output type. Valid choices are [plain pretty json yaml]. (default "plain")
+  -t, --timeout duration     Timeout value of the http client to the Wikipedia API. Examples values: '10s', '500ms' (default 15s)
+  -v, --version              version for wpdia-go
 ```
 ## Installation
 
