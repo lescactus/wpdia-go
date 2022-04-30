@@ -1,4 +1,4 @@
-# wpdia-go
+# wpdia-go [![Go CI](https://github.com/lescactus/wpdia-go/actions/workflows/go.yml/badge.svg)](https://github.com/lescactus/wpdia-go/actions/workflows/go.yml) [![Docker Image CI](https://github.com/lescactus/wpdia-go/actions/workflows/docker-image.yml/badge.svg)](https://github.com/lescactus/wpdia-go/actions/workflows/docker-image.yml)
 
 This repository contains a simple cli written in go used to get the description of a given text in Wikipedia.
 
