@@ -27,10 +27,10 @@ Usage:
 Flags:
   -i, --exintro              Return only content before the first section. Mutually exclusive with 'exsentences'. (default true)
   -s, --exsentences string   How many sentences to return from Wikipedia. Must be between 1 and 10. If > 10, then default to 10. Mutually exclusive with 'exintro'. (default "10")
+  -f, --full                 Also print the page Namespace and page ID.
   -h, --help                 help for wpdia-go
   -l, --lang string          Language. This will set the API endpoint used to retrieve data. (default "en")
   -o, --output string        Output type. Valid choices are [plain pretty json yaml]. (default "plain")
-  -t, --timeout duration     Timeout value of the http client to the Wikipedia API. Examples values: '10s', '500ms' (default 15s)
 ```
 ## Installation
 
@@ -194,11 +194,31 @@ Google's self-hosting "gc" compiler toolchain, targeting multiple operating syst
 gofrontend, a frontend to other compilers, with the libgo library. With GCC the combination is gccgo; with LLVM the combination is gollvm.A third-party source-to-source compiler, GopherJS, compiles Go to JavaScript for front-end web development.
 ```
 
-### HTTP client timeout set to 500ms + json output + only 3 sentences + French language
+### Output the page namespace and page id
+```
+Title:
+  Go (programming language)
+
+Ns:
+  0
+
+Pageid:
+  25039021
+
+Extract:
+  Go is a statically typed, compiled programming language designed at Google by Robert Griesemer, Rob Pike, and Ken Thompson. It is syntactically similar to C, but with memory safety, garbage collection, structural typing, and CSP-style concurrency. It is often referred to as Golang because of its former domain name, golang.org, but its proper name is Go.There are two major implementations:
+
+Google's self-hosting "gc" compiler toolchain, targeting multiple operating systems and WebAssembly.
+gofrontend, a frontend to other compilers, with the libgo library. With GCC the combination is gccgo; with LLVM the combination is gollvm.A third-party source-to-source compiler, GopherJS, compiles Go to JavaScript for front-end web development.
+```
+
+### HTTP client timeout set to 500ms + json output + only 3 sentences + French language + full output
 
 ```
-./wpdia-go --timeout 500ms --output json --exsentences 3 --lang fr golang 
+./wpdia-go --timeout 500ms --output json --exsentences 3 --lang fr --full golang
 {
+    "pageid": 4230561,
+    "ns": 0,
     "title": "Go (langage)",
     "extract": "Go est un langage de programmation compilé et concurrent inspiré de C et Pascal. Ce langage a été développé par Google à partir d’un concept initial de Robert Griesemer, Rob Pike et Ken Thompson. Go possède deux implémentations : la première utilise gc, le compilateur Go ; la seconde utilise gccgo, « frontend » GCC écrit en C++."
 }
@@ -229,6 +249,6 @@ gofrontend, a frontend to other compilers, with the libgo library. With GCC the 
 
 - [x] Dockerize
 
-- [ ] Debug flag (show page id, ns, timestamps, etc...)
+- [x] Debug flag (show page id, ns, timestamps, etc...)
 
 - [ ] Verbose logs

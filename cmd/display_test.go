@@ -104,27 +104,36 @@ func TestNewYamlFormat(t *testing.T) {
 
 func TestPlainFormatWrite(t *testing.T) {
 	type args struct {
-		p *Page
+		p    *Page
+		full bool
 	}
 	tests := []struct {
-		desc    string
+		name    string
 		d       *plainFormat
 		args    args
 		wantW   string
 		wantErr bool
 	}{
 		{
+			name:    "Without full output",
 			d:       NewPlainFormat(),
-			args:    args{p: &page},
+			args:    args{p: &page, full: false},
 			wantW:   fmt.Sprintf("Title:\n  %s\n\nExtract:\n  %s", page.Title, page.Extract),
+			wantErr: false,
+		},
+		{
+			name:    "With full output",
+			d:       NewPlainFormat(),
+			args:    args{p: &page, full: true},
+			wantW:   fmt.Sprintf("Title:\n  %s\n\nNs:\n  %d\n\nPageid:\n  %d\n\nExtract:\n  %s", page.Title, *page.Ns, *page.Pageid, page.Extract),
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.desc, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			d := &plainFormat{}
 			w := &bytes.Buffer{}
-			if err := d.Write(w, tt.args.p); (err != nil) != tt.wantErr {
+			if err := d.Write(w, tt.args.p, tt.args.full); (err != nil) != tt.wantErr {
 				t.Errorf("plainFormat.Write() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
@@ -140,16 +149,24 @@ func TestPrettyFormatWrite(t *testing.T) {
 		wordWrap int
 	}
 	type args struct {
-		p *Page
+		p    *Page
+		full bool
 	}
 	tests := []struct {
+		name    string
 		fields  fields
 		args    args
+		wantW   string
 		wantErr bool
 	}{
 		{
 			fields:  fields{wordWrap: 100},
-			args:    args{p: &page},
+			args:    args{p: &page, full: true},
+			wantErr: false,
+		},
+		{
+			fields:  fields{wordWrap: 100},
+			args:    args{p: &page, full: false},
 			wantErr: false,
 		},
 	}
@@ -159,7 +176,7 @@ func TestPrettyFormatWrite(t *testing.T) {
 				wordWrap: tt.fields.wordWrap,
 			}
 			w := &bytes.Buffer{}
-			err := d.Write(w, tt.args.p)
+			err := d.Write(w, tt.args.p, tt.args.full)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -176,19 +193,20 @@ func TestJsonFormatWrite(t *testing.T) {
 		indent string
 	}
 	type args struct {
-		p *Page
+		p    *Page
+		full bool
 	}
 	tests := []struct {
-		desc    string
+		name    string
 		fields  fields
 		args    args
 		wantW   string
 		wantErr bool
 	}{
 		{
-			desc:   "prefix: '', indent: '    '",
+			name:   "prefix: '', indent: '    ', full: false",
 			fields: fields{prefix: "", indent: "    "},
-			args:   args{p: &page},
+			args:   args{full: false},
 			wantW: fmt.Sprintf(`{
     "title": "%s",
     "extract": "%s"
@@ -197,9 +215,9 @@ func TestJsonFormatWrite(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			desc:   "prefix: ' ', indent: ''",
+			name:   "prefix: ' ', indent: '', full: false",
 			fields: fields{prefix: " ", indent: ""},
-			args:   args{p: &page},
+			args:   args{full: false},
 			wantW: fmt.Sprintf(`{
  "title": "%s",
  "extract": "%s"
@@ -207,15 +225,44 @@ func TestJsonFormatWrite(t *testing.T) {
 `, page.Title, page.Extract),
 			wantErr: false,
 		},
+		{
+			name:   "prefix: '', indent: '    ', full: true",
+			fields: fields{prefix: "", indent: "    "},
+			args:   args{full: true},
+			wantW: fmt.Sprintf(`{
+    "pageid": %d,
+    "ns": %d,
+    "title": "%s",
+    "extract": "%s"
+}
+`, *page.Pageid, *page.Ns, page.Title, page.Extract),
+			wantErr: false,
+		},
+		{
+			name:   "prefix: ' ', indent: '', full: true",
+			fields: fields{prefix: " ", indent: ""},
+			args:   args{full: true},
+			wantW: fmt.Sprintf(`{
+ "pageid": %d,
+ "ns": %d,
+ "title": "%s",
+ "extract": "%s"
+ }
+`, *page.Pageid, *page.Ns, page.Title, page.Extract),
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.desc, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			d := &jsonFormat{
 				prefix: tt.fields.prefix,
 				indent: tt.fields.indent,
 			}
 			w := &bytes.Buffer{}
-			err := d.Write(w, tt.args.p)
+
+			newPage := page
+			tt.args.p = &newPage
+			err := d.Write(w, tt.args.p, tt.args.full)
 
 			assert.Equal(t, tt.wantW, w.String())
 			if tt.wantErr {
@@ -229,19 +276,20 @@ func TestJsonFormatWrite(t *testing.T) {
 
 func TestYamlFormatWrite(t *testing.T) {
 	type args struct {
-		p *Page
+		p    *Page
+		full bool
 	}
 	tests := []struct {
-		desc    string
+		name    string
 		d       *yamlFormat
 		args    args
 		wantW   string
 		wantErr bool
 	}{
 		{
-			desc: "",
+			name: "Without full output",
 			d:    &yamlFormat{},
-			args: args{p: &page},
+			args: args{full: false},
 			wantW: fmt.Sprintf(`title: %s
 extract: Go is a statically typed, compiled programming language designed at Google
   by Robert Griesemer, Rob Pike, and Ken Thompson.
@@ -249,11 +297,27 @@ extract: Go is a statically typed, compiled programming language designed at Goo
 `, page.Title),
 			wantErr: false,
 		},
+		{
+			name: "With full output",
+			d:    &yamlFormat{},
+			args: args{full: true},
+			wantW: fmt.Sprintf(`pageid: %d
+ns: %d
+title: %s
+extract: Go is a statically typed, compiled programming language designed at Google
+  by Robert Griesemer, Rob Pike, and Ken Thompson.
+
+`, *page.Pageid, *page.Ns, page.Title),
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.desc, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			w := &bytes.Buffer{}
-			err := tt.d.Write(w, tt.args.p)
+
+			newPage := page
+			tt.args.p = &newPage
+			err := tt.d.Write(w, tt.args.p, tt.args.full)
 
 			assert.Equal(t, tt.wantW, w.String())
 			if tt.wantErr {

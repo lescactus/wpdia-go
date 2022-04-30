@@ -9,9 +9,17 @@ import (
 )
 
 var (
+	ns        = 0
+	pageid    = 25039021
+	nsPtr     = &ns
+	pageidPtr = &pageid
+
 	page = Page{
 		Title:   "Golang",
 		Extract: "Go is a statically typed, compiled programming language designed at Google by Robert Griesemer, Rob Pike, and Ken Thompson.",
+
+		Ns:     nsPtr,
+		Pageid: pageidPtr,
 	}
 )
 
