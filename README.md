@@ -78,6 +78,60 @@ docker build -t wpdia-go .
 docker run --rm wpdia-go "Rammstein"
 ```
 
+## Disambiguation pages
+
+Sometimes the resulted page coming from Wikipedia's search is a disambiguation.
+To quote [Wikipedia](https://en.wikipedia.org/wiki/Wikipedia:Disambiguation):
+> Disambiguation in Wikipedia is the process of resolving conflicts that arise when a potential article title is ambiguous, most often because it refers to more than one subject covered by Wikipedia, either as the main topic of an article, or as a subtopic covered by an article in addition to the article's main topic. For example, Mercury can refer to a chemical element, a planet, a Roman god, and many other things.
+
+> Disambiguation is required whenever, for a given word or phrase on which a reader might search, there is more than one existing Wikipedia article to which that word or phrase might be expected to lead. In this situation there must be a way for the reader to navigate quickly from the page that first appears to any of the other possible desired articles.
+
+In this case, `wpdia-go` will print an error message asking the user to refine the query. Example:
+
+```
+./wpdia-go nancy
+Title:
+  Nancy
+
+Extract:
+  /!\ The requested page is a disambiguation page /!\
+
+A disambiguation page is Wikipedia's way of resolving conflicts that arise when a potential article title is ambiguous - most often because it refers to more than one subject covered by Wikipedia.
+For example, Mercury can refer to a chemical element, a planet, a Roman god, and many other things.
+
+Try to refine the search in a more precise manner. Example:
+	'Nancy France' instead of 'Nancy' - or 'Go verb' instead of 'Go'
+```
+
+When this happens, refining the query by beoing more precise will help.
+For example, when looking for the description of the French city of Nancy, look for `Nancy France` instead of simply `Nancy`:
+
+```
+$ ./wpdia-go Nancy
+Title:
+  Nancy
+
+Extract:
+  /!\ The requested page is a disambiguation page /!\
+
+A disambiguation page is Wikipedia's way of resolving conflicts that arise when a potential article title is ambiguous - most often because it refers to more than one subject covered by Wikipedia.
+For example, Mercury can refer to a chemical element, a planet, a Roman god, and many other things.
+
+Try to refine the search in a more precise manner. Example:
+	'Nancy France' instead of 'Nancy' - or 'Go verb' instead of 'Go'
+
+
+$ ./wpdia-go "Nancy france"
+Title:
+  Nancy, France
+
+Extract:
+  Nancy is the prefecture of the northeastern French department of Meurthe-et-Moselle. It was the capital of the Duchy of Lorraine which was annexed by France under King Louis XV in 1766 and replaced by a province with Nancy maintained as capital. Following its rise to prominence in the Age of Enlightenment, it was nicknamed the "capital of Eastern France" in the late 19th century. The metropolitan area of Nancy had a population of 511,257 inhabitants at the 2018 census, making it the 16th-largest urban area in France and Lorraine's largest. The population of the city of Nancy proper is 104,885.
+The motto of the city is Non inultus premor, Latin for '"I am not injured unavenged"'—a reference to the thistle, which is a symbol of Lorraine. Place Stanislas, a large square built between 1752 and 1756 by architect Emmanuel Héré under the direction of Stanislaus I of Poland to link the medieval old town of Nancy and the new city built under Charles III, Duke of Lorraine in the 17th century, is now a UNESCO World Heritage Site, the first square in France to be given this distinction. The city also has many buildings listed as historical monuments and is one of the European centres of Art Nouveau thanks to the École de Nancy. Nancy is also a large university city; with the Centre Hospitalier Régional Universitaire de Brabois, the conurbation is home to one of the main health centres in Europe, renowned for its innovations in surgical robotics.
+```
+
+In the future, suggestions may be implemented.
+
 ## Examples
 
 ### Basic usage:
@@ -198,8 +252,9 @@ Google's self-hosting "gc" compiler toolchain, targeting multiple operating syst
 gofrontend, a frontend to other compilers, with the libgo library. With GCC the combination is gccgo; with LLVM the combination is gollvm.A third-party source-to-source compiler, GopherJS, compiles Go to JavaScript for front-end web development.
 ```
 
-### Output the page namespace and page id
+### Output the page namespace, page id and page properties
 ```
+./wpedia-go golang --full
 Title:
   Go (programming language)
 
@@ -208,6 +263,12 @@ Ns:
 
 Pageid:
   25039021
+
+WikiBase Short Description:
+  Programming language
+
+WikiBase Item:
+  Q37227
 
 Extract:
   Go is a statically typed, compiled programming language designed at Google by Robert Griesemer, Rob Pike, and Ken Thompson. It is syntactically similar to C, but with memory safety, garbage collection, structural typing, and CSP-style concurrency. It is often referred to as Golang because of its former domain name, golang.org, but its proper name is Go.There are two major implementations:
@@ -301,7 +362,7 @@ gofrontend, a frontend to other compilers, with the libgo library. With GCC the 
 ### HTTP client timeout set to 500ms + json output + only 3 sentences + French language + full output + log level debug + log format json
 
 ```
-./wpdia-go -t 500ms --output json --exsentences 3 --lang fr --full --loglevel debug --logformat json golang      
+./wpdia-go -t 500ms --output json --exsentences 3 --lang fr --full --loglevel debug --logformat json golang
 {"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:68","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"info","msg":"Creating new Wiki client...","time":"2022-05-02T10:13:23+02:00","url":"https://fr.wikipedia.org/w/api.php"}
 {"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:38","func":"github.com/lescactus/wpdia-go/cmd.NewWikiClient","level":"debug","msg":"Parsing base URL...","time":"2022-05-02T10:13:23+02:00","url":"https://fr.wikipedia.org/w/api.php"}
 {"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:49","func":"github.com/lescactus/wpdia-go/cmd.NewWikiClient","level":"debug","msg":"Base URL Parsed","time":"2022-05-02T10:13:23+02:00","url":"https://fr.wikipedia.org/w/api.php"}
@@ -326,8 +387,10 @@ gofrontend, a frontend to other compilers, with the libgo library. With GCC the 
     "pageid": 4230561,
     "ns": 0,
     "title": "Go (langage)",
-    "extract": "Go est un langage de programmation compilé et concurrent inspiré de C et Pascal. Ce langage a été développé par Google à partir d’un concept initial de Robert Griesemer, Rob Pike et Ken Thompson. Go possède deux implémentations : la première utilise gc, le compilateur Go ; la seconde utilise gccgo, « frontend » GCC écrit en C++."
-}
+    "extract": "Go est un langage de programmation compilé et concurrent inspiré de C et Pascal. Ce langage a été développé par Google à partir d’un concept initial de Robert Griesemer, Rob Pike et Ken Thompson. Go possède deux implémentations : la première utilise gc, le compilateur Go ; la seconde utilise gccgo, « frontend » GCC écrit en C++.",
+    "pageprops": {
+        "wikibase_item": "Q37227"
+    }
 ```
 
 ---
@@ -349,7 +412,9 @@ gofrontend, a frontend to other compilers, with the libgo library. With GCC the 
 
 - [ ] Implement "random article" 
 
-- [ ] Fix 'may refer to:'
+- [x] Fix 'may refer to:'
+
+- [ ] Add suggestions for disambiguation pages
 
 - [x] Improve base url
 
