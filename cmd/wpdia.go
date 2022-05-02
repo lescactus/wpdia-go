@@ -247,10 +247,6 @@ func (w *WikiClient) SearchTitle(title string) (uint64, error) {
 	return s.Query.Search[0].Pageid, nil
 }
 
-func (w *WikiClient) IsDisambiguation(id uint64) (bool, error) {
-	return false, nil
-}
-
 // wikiRequestBuilder is used to build a http request to the Wikipedia's API.
 // It will create a http GET request with:
 // - a set of standard http parameters in addition to the one passed to the function,
