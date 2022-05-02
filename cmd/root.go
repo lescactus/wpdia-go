@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	version = "0.0.8"
+	version = "0.0.9"
 )
 
 var (
@@ -69,7 +69,12 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 
 			w, err := NewWikiClient(APIBaseURL, "")
 			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
+				//fmt.Fprintln(os.Stderr, err)
+				log.SetOutput(os.Stderr)
+				log.WithFields(logrus.Fields{
+					"level": logLevel,
+					"url":   APIBaseURL,
+				}).Error(err)
 				os.Exit(1)
 			}
 
@@ -86,7 +91,12 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 			// Get the id of the page requested
 			id, err := w.SearchTitle(args[0])
 			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
+				log.SetOutput(os.Stderr)
+				log.WithFields(logrus.Fields{
+					"level": logLevel,
+					"url":   APIBaseURL,
+					"title": args[0],
+				}).Error(err)
 				os.Exit(1)
 			}
 
@@ -138,6 +148,24 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 			}).Debug("Text extract found")
 			page := extract.Query.Pages[fmt.Sprint(id)]
 
+			// Ensure the page isn't a disambiguation
+			// In the case it is, simply print a message saying to refine the search
+			if page.IsDisambiguation() {
+				log.WithFields(logrus.Fields{
+					"level": logLevel,
+					"title": args[0],
+					"id":    id,
+				}).Warn("The requested page is a disambiguation page")
+
+				page.Extract = `/!\ The requested page is a disambiguation page /!\
+
+A disambiguation page is Wikipedia's way of resolving conflicts that arise when a potential article title is ambiguous - most often because it refers to more than one subject covered by Wikipedia.
+For example, Mercury can refer to a chemical element, a planet, a Roman god, and many other things.
+
+Try to refine the search in a more precise manner. Example:
+	'Nancy France' instead of 'Nancy' - or 'Go verb' instead of 'Go'`
+			}
+
 			log.WithFields(logrus.Fields{
 				"level": logLevel,
 			}).Debug("Setting formatter...")
@@ -162,7 +190,10 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 			// Write extract to the terminal
 			d.Write(os.Stdout, &page, fullOutput)
 			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
+				log.SetOutput(os.Stderr)
+				log.WithFields(logrus.Fields{
+					"level": logLevel,
+				}).Error(err)
 				os.Exit(1)
 			}
 		},

@@ -25,6 +25,12 @@ var (
 
 		Ns:     nsPtr,
 		Pageid: pageidPtr,
+
+		PageProps: &WikiPageProps{
+			Disambiguation:    nil,
+			WikiBaseShortDesc: "WikiBaseShortDesc",
+			WikiBaseItem:      "WikiBaseItem",
+		},
 	}
 )
 

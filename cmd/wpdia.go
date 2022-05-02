@@ -83,7 +83,7 @@ func (w *WikiClient) GetExtract(id uint64) (*WikiTextExtractResponse, error) {
 
 	params := url.Values{}
 
-	params.Add("prop", "extracts")
+	params.Add("prop", "extracts|pageprops")
 	params.Add("pageids", fmt.Sprint(id))
 	params.Add("explaintext", "1")
 	params.Add("exsectionformat", "plain")
@@ -175,16 +175,47 @@ func (w *WikiClient) SearchTitle(title string) (uint64, error) {
 	params.Add("utf8", "1")
 	params.Add("srsearch", title)
 
+	log.WithFields(logrus.Fields{
+		"level":  logLevel,
+		"params": params,
+	}).Debug("Http request parameters set")
+
+	log.WithFields(logrus.Fields{
+		"level":      logLevel,
+		"params":     params,
+		"url":        w.BaseURL.String(),
+		"user-agent": w.UserAgent,
+	}).Debug("Building http request...")
+
 	// Build http request
 	req, err := wikiRequestBuilder(params, w.BaseURL.String(), w.UserAgent)
 	if err != nil {
 		return 0, errors.New(fmt.Sprintf("error while building http request: %v", err))
 	}
 
+	log.WithFields(logrus.Fields{
+		"level":      logLevel,
+		"params":     params,
+		"url":        w.BaseURL.String(),
+		"user-agent": w.UserAgent,
+	}).Debug("Http request built")
+
+	log.WithFields(logrus.Fields{
+		"level": logLevel,
+	}).Debug("Sending http request...")
+
 	resp, err := w.Client.Do(req)
 	if err != nil {
 		return 0, err
 	}
+
+	log.WithFields(logrus.Fields{
+		"level": logLevel,
+	}).Debug("Http request sent")
+
+	log.WithFields(logrus.Fields{
+		"level": logLevel,
+	}).Debug("Reading http response body and unmarshalling...")
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
@@ -195,13 +226,29 @@ func (w *WikiClient) SearchTitle(title string) (uint64, error) {
 		return 0, err
 	}
 
+	log.WithFields(logrus.Fields{
+		"level": logLevel,
+	}).Debug("Http response body read and unmarshalled")
+
 	// Query.Search[] will be empty if the search doesn't match anything
 	if len(s.Query.Search) == 0 {
+		log.WithFields(logrus.Fields{
+			"level": logLevel,
+		}).Warn("Search didn't match anything")
 		return 0, nil
 	}
 
+	log.WithFields(logrus.Fields{
+		"level":  logLevel,
+		"pageid": s.Query.Search[0].Pageid,
+	}).Info("Search found a Page ID")
+
 	// We only care about the first result
 	return s.Query.Search[0].Pageid, nil
+}
+
+func (w *WikiClient) IsDisambiguation(id uint64) (bool, error) {
+	return false, nil
 }
 
 // wikiRequestBuilder is used to build a http request to the Wikipedia's API.

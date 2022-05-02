@@ -1,6 +1,8 @@
 package cmd
 
-import "time"
+import (
+	"time"
+)
 
 // WikiSearchResponse represents the http response of the Wikipedia Search API.
 // Documentation is found here: https://www.mediawiki.org/wiki/API:Search
@@ -40,4 +42,26 @@ type Page struct {
 
 	Title   string `json:"title"`
 	Extract string `json:"extract"`
+
+	PageProps *WikiPageProps `json:"pageprops,omitempty" yaml:"pageprops,omitempty"`
+}
+
+// WikiPageProps represents the Wikipedia's API response for a 'pageprops' query.
+// Documentation is found here: https://www.mediawiki.org/w/api.php?action=help&modules=query%2Bpageprops
+type WikiPageProps struct {
+	// Use a pointer for the fields, so that the zero value of the JSON type
+	// can be differentiated from the missing value
+
+	Disambiguation    *string `json:"disambiguation,omitempty" yaml:"disambiguation,omitempty"`
+	WikiBaseShortDesc string  `json:"wikibase-shortdesc,omitempty" yaml:"wikibase-shortdesc,omitempty"`
+	WikiBaseItem      string  `json:"wikibase_item,omitempty" yaml:"wikibase_item,omitempty"`
+}
+
+// IsDisambiguation will verify whether the page is a disambiguation page or not.
+// It returns true if yes, false otherwise.
+func (p *Page) IsDisambiguation() bool {
+	if p.PageProps.Disambiguation == nil {
+		return false
+	}
+	return true
 }

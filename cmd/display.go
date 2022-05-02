@@ -50,6 +50,17 @@ func (d *plainFormat) Write(w io.Writer, p *Page, full bool) error {
 		if err != nil {
 			return err
 		}
+
+		_, err = fmt.Fprintf(w, "WikiBase Short Description:\n  %s\n\n", p.PageProps.WikiBaseShortDesc)
+		if err != nil {
+			return err
+		}
+
+		_, err = fmt.Fprintf(w, "WikiBase Item:\n  %s\n\n", p.PageProps.WikiBaseItem)
+		if err != nil {
+			return err
+		}
+
 	}
 
 	_, err = fmt.Fprintf(w, "Extract:\n  %s", p.Extract)
@@ -98,6 +109,18 @@ func (d *prettyFormat) Write(w io.Writer, p *Page, full bool) error {
 			return err
 		}
 		fmt.Fprint(w, out)
+
+		out, err = r.Render("### WikiBase Short Description" + fmt.Sprintf("\nNs: %s", p.PageProps.WikiBaseShortDesc))
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(w, out)
+
+		out, err = r.Render("### WikiBase Item" + fmt.Sprintf("\nNs: %s", p.PageProps.WikiBaseItem))
+		if err != nil {
+			return err
+		}
+		fmt.Fprint(w, out)
 	}
 
 	out, err = r.Render(fmt.Sprintf("### Extract\n%s", p.Extract))
@@ -119,11 +142,12 @@ func NewJsonFormat(prefix, indent string) *jsonFormat {
 func (d *jsonFormat) Write(w io.Writer, p *Page, full bool) error {
 	// Nullify these fields if not requesting the full output
 	if !full {
-		//n := func(i int) *int { return &i }(0)
 		var n *int
 		var i *int
 		p.Ns = n
 		p.Pageid = i
+
+		p.PageProps = nil
 	}
 
 	b, err := json.MarshalIndent(p, d.prefix, d.indent)
@@ -147,6 +171,8 @@ func (d *yamlFormat) Write(w io.Writer, p *Page, full bool) error {
 		var i *int
 		p.Ns = n
 		p.Pageid = i
+
+		p.PageProps = nil
 	}
 
 	out, err := yaml.Marshal(&p)
