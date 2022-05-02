@@ -5,8 +5,13 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	log = logrus.New()
+}
 
 var (
 	ns        = 0
