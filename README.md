@@ -30,6 +30,8 @@ Flags:
   -f, --full                 Also print the page Namespace and page ID.
   -h, --help                 help for wpdia-go
   -l, --lang string          Language. This will set the API endpoint used to retrieve data. (default "en")
+  -a, --logformat string     Log format. Accepted values are [text json]. (default "text")
+  -e, --loglevel string      Log level verbosity. Accepted values are [debug info warn error]. (default "error")
   -o, --output string        Output type. Valid choices are [plain pretty json yaml]. (default "plain")
   -t, --timeout duration     Timeout value of the http client to the Wikipedia API. Examples values: '10s', '500ms' (default 15s)
   -v, --version              version for wpdia-go
@@ -214,10 +216,112 @@ Google's self-hosting "gc" compiler toolchain, targeting multiple operating syst
 gofrontend, a frontend to other compilers, with the libgo library. With GCC the combination is gccgo; with LLVM the combination is gollvm.A third-party source-to-source compiler, GopherJS, compiles Go to JavaScript for front-end web development.
 ```
 
-### HTTP client timeout set to 500ms + json output + only 3 sentences + French language + full output
+### Info level logging
 
 ```
-./wpdia-go --timeout 500ms --output json --exsentences 3 --lang fr --full golang
+INFO[2022-05-02T10:10:54+02:00] Creating new Wiki client...                   fields.level=info url="https://en.wikipedia.org/w/api.php"
+INFO[2022-05-02T10:10:54+02:00] Searching title...                            fields.level=info title=golang
+INFO[2022-05-02T10:10:55+02:00] Getting text extract...                       fields.level=info id=25039021 title=golang
+Title:
+  Go (programming language)
+
+Extract:
+  Go is a statically typed, compiled programming language designed at Google by Robert Griesemer, Rob Pike, and Ken Thompson. It is syntactically similar to C, but with memory safety, garbage collection, structural typing, and CSP-style concurrency. It is often referred to as Golang because of its former domain name, golang.org, but its proper name is Go.There are two major implementations:
+
+Google's self-hosting "gc" compiler toolchain, targeting multiple operating systems and WebAssembly.
+gofrontend, a frontend to other compilers, with the libgo library. With GCC the combination is gccgo; with LLVM the combination is gollvm.A third-party source-to-source compiler, GopherJS, compiles Go to JavaScript for front-end web development.
+```
+
+### Debug level logging
+
+```
+INFO[2022-05-02T10:11:11+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/root.go:68 github.com/lescactus/wpdia-go/cmd.glob..func1() Creating new Wiki client...                   fields.level=debug url="https://en.wikipedia.org/w/api.php"
+DEBU[2022-05-02T10:11:11+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:38 github.com/lescactus/wpdia-go/cmd.NewWikiClient() Parsing base URL...                           fields.level=debug url="https://en.wikipedia.org/w/api.php"
+DEBU[2022-05-02T10:11:11+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:49 github.com/lescactus/wpdia-go/cmd.NewWikiClient() Base URL Parsed                               fields.level=debug url="https://en.wikipedia.org/w/api.php"
+DEBU[2022-05-02T10:11:11+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:63 github.com/lescactus/wpdia-go/cmd.NewWikiClient() User-Agent set                                User-Agent="wpdia-go/0.0.8 (github.com/lescactus/wpdia-go) WikiClient/0.0.8" fields.level=debug
+DEBU[2022-05-02T10:11:11+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/root.go:79 github.com/lescactus/wpdia-go/cmd.glob..func1() New Wiki client created                       fields.level=debug url="https://en.wikipedia.org/w/api.php"
+INFO[2022-05-02T10:11:11+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/root.go:84 github.com/lescactus/wpdia-go/cmd.glob..func1() Searching title...                            fields.level=debug title=golang
+DEBU[2022-05-02T10:11:11+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/root.go:96 github.com/lescactus/wpdia-go/cmd.glob..func1() Title found                                   fields.level=debug title=golang
+DEBU[2022-05-02T10:11:11+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/root.go:110 github.com/lescactus/wpdia-go/cmd.glob..func1() Disable 'exintro'...                          fields.level=debug
+INFO[2022-05-02T10:11:11+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/root.go:122 github.com/lescactus/wpdia-go/cmd.glob..func1() Getting text extract...                       fields.level=debug id=25039021 title=golang
+DEBU[2022-05-02T10:11:11+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:82 github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract() Setting http request parameters...            fields.level=debug
+DEBU[2022-05-02T10:11:11+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:103 github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract() Http request parameters set                   fields.level=debug params="map[exintro:[1] explaintext:[1] exsectionformat:[plain] pageids:[25039021] prop:[extracts]]"
+DEBU[2022-05-02T10:11:11+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:110 github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract() Building http request...                      fields.level=debug params="map[exintro:[1] explaintext:[1] exsectionformat:[plain] pageids:[25039021] prop:[extracts]]" url="https://en.wikipedia.org/w/api.php" user-agent="wpdia-go/0.0.8 (github.com/lescactus/wpdia-go) WikiClient/0.0.8"
+DEBU[2022-05-02T10:11:11+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:123 github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract() Http request built                            fields.level=debug params="map[action:[query] exintro:[1] explaintext:[1] exsectionformat:[plain] format:[json] pageids:[25039021] prop:[extracts]]" url="https://en.wikipedia.org/w/api.php" user-agent="wpdia-go/0.0.8 (github.com/lescactus/wpdia-go) WikiClient/0.0.8"
+DEBU[2022-05-02T10:11:11+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:127 github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract() Sending http request...                       fields.level=debug
+DEBU[2022-05-02T10:11:12+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:136 github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract() Http request sent                             fields.level=debug
+DEBU[2022-05-02T10:11:12+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:143 github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract() Reading http response body and unmarshalling...  fields.level=debug
+DEBU[2022-05-02T10:11:12+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:153 github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract() Http response body read and unmarshalled      fields.level=debug
+DEBU[2022-05-02T10:11:12+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/root.go:138 github.com/lescactus/wpdia-go/cmd.glob..func1() Text extract found                            fields.level=debug id=25039021 title=golang
+DEBU[2022-05-02T10:11:12+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/root.go:143 github.com/lescactus/wpdia-go/cmd.glob..func1() Setting formatter...                          fields.level=debug
+DEBU[2022-05-02T10:11:12+02:00]/home/amaldeme/gitclone/wpdia-go/cmd/root.go:160 github.com/lescactus/wpdia-go/cmd.glob..func1() Formatter set to plain                        fields.level=debug
+Title:
+  Go (programming language)
+
+Extract:
+  Go is a statically typed, compiled programming language designed at Google by Robert Griesemer, Rob Pike, and Ken Thompson. It is syntactically similar to C, but with memory safety, garbage collection, structural typing, and CSP-style concurrency. It is often referred to as Golang because of its former domain name, golang.org, but its proper name is Go.There are two major implementations:
+
+Google's self-hosting "gc" compiler toolchain, targeting multiple operating systems and WebAssembly.
+gofrontend, a frontend to other compilers, with the libgo library. With GCC the combination is gccgo; with LLVM the combination is gollvm.A third-party source-to-source compiler, GopherJS, compiles Go to JavaScript for front-end web development. 
+```
+
+### Json logging
+
+```
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:68","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"info","msg":"Creating new Wiki client...","time":"2022-05-02T10:11:51+02:00","url":"https://en.wikipedia.org/w/api.php"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:38","func":"github.com/lescactus/wpdia-go/cmd.NewWikiClient","level":"debug","msg":"Parsing base URL...","time":"2022-05-02T10:11:51+02:00","url":"https://en.wikipedia.org/w/api.php"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:49","func":"github.com/lescactus/wpdia-go/cmd.NewWikiClient","level":"debug","msg":"Base URL Parsed","time":"2022-05-02T10:11:51+02:00","url":"https://en.wikipedia.org/w/api.php"}
+{"User-Agent":"wpdia-go/0.0.8 (github.com/lescactus/wpdia-go) WikiClient/0.0.8","fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:63","func":"github.com/lescactus/wpdia-go/cmd.NewWikiClient","level":"debug","msg":"User-Agent set","time":"2022-05-02T10:11:51+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:79","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"debug","msg":"New Wiki client created","time":"2022-05-02T10:11:51+02:00","url":"https://en.wikipedia.org/w/api.php"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:84","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"info","msg":"Searching title...","time":"2022-05-02T10:11:51+02:00","title":"golang"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:96","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"debug","msg":"Title found","time":"2022-05-02T10:11:51+02:00","title":"golang"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:110","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"debug","msg":"Disable 'exintro'...","time":"2022-05-02T10:11:51+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:122","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","id":25039021,"level":"info","msg":"Getting text extract...","time":"2022-05-02T10:11:51+02:00","title":"golang"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:82","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Setting http request parameters...","time":"2022-05-02T10:11:51+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:103","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Http request parameters set","params":{"exintro":["1"],"explaintext":["1"],"exsectionformat":["plain"],"pageids":["25039021"],"prop":["extracts"]},"time":"2022-05-02T10:11:51+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:110","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Building http request...","params":{"exintro":["1"],"explaintext":["1"],"exsectionformat":["plain"],"pageids":["25039021"],"prop":["extracts"]},"time":"2022-05-02T10:11:51+02:00","url":"https://en.wikipedia.org/w/api.php","user-agent":"wpdia-go/0.0.8 (github.com/lescactus/wpdia-go) WikiClient/0.0.8"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:123","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Http request built","params":{"action":["query"],"exintro":["1"],"explaintext":["1"],"exsectionformat":["plain"],"format":["json"],"pageids":["25039021"],"prop":["extracts"]},"time":"2022-05-02T10:11:51+02:00","url":"https://en.wikipedia.org/w/api.php","user-agent":"wpdia-go/0.0.8 (github.com/lescactus/wpdia-go) WikiClient/0.0.8"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:127","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Sending http request...","time":"2022-05-02T10:11:51+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:136","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Http request sent","time":"2022-05-02T10:11:51+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:143","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Reading http response body and unmarshalling...","time":"2022-05-02T10:11:51+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:153","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Http response body read and unmarshalled","time":"2022-05-02T10:11:51+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:138","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","id":25039021,"level":"debug","msg":"Text extract found","time":"2022-05-02T10:11:51+02:00","title":"golang"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:143","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"debug","msg":"Setting formatter...","time":"2022-05-02T10:11:51+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:160","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"debug","msg":"Formatter set to plain","time":"2022-05-02T10:11:51+02:00"}
+Title:
+  Go (programming language)
+
+Extract:
+  Go is a statically typed, compiled programming language designed at Google by Robert Griesemer, Rob Pike, and Ken Thompson. It is syntactically similar to C, but with memory safety, garbage collection, structural typing, and CSP-style concurrency. It is often referred to as Golang because of its former domain name, golang.org, but its proper name is Go.There are two major implementations:
+
+Google's self-hosting "gc" compiler toolchain, targeting multiple operating systems and WebAssembly.
+gofrontend, a frontend to other compilers, with the libgo library. With GCC the combination is gccgo; with LLVM the combination is gollvm.A third-party source-to-source compiler, GopherJS, compiles Go to JavaScript for front-end web development.
+```
+
+### HTTP client timeout set to 500ms + json output + only 3 sentences + French language + full output + log level debug + log format json
+
+```
+./wpdia-go -t 500ms --output json --exsentences 3 --lang fr --full --loglevel debug --logformat json golang      
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:68","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"info","msg":"Creating new Wiki client...","time":"2022-05-02T10:13:23+02:00","url":"https://fr.wikipedia.org/w/api.php"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:38","func":"github.com/lescactus/wpdia-go/cmd.NewWikiClient","level":"debug","msg":"Parsing base URL...","time":"2022-05-02T10:13:23+02:00","url":"https://fr.wikipedia.org/w/api.php"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:49","func":"github.com/lescactus/wpdia-go/cmd.NewWikiClient","level":"debug","msg":"Base URL Parsed","time":"2022-05-02T10:13:23+02:00","url":"https://fr.wikipedia.org/w/api.php"}
+{"User-Agent":"wpdia-go/0.0.8 (github.com/lescactus/wpdia-go) WikiClient/0.0.8","fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:63","func":"github.com/lescactus/wpdia-go/cmd.NewWikiClient","level":"debug","msg":"User-Agent set","time":"2022-05-02T10:13:23+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:79","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"debug","msg":"New Wiki client created","time":"2022-05-02T10:13:23+02:00","url":"https://fr.wikipedia.org/w/api.php"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:84","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"info","msg":"Searching title...","time":"2022-05-02T10:13:23+02:00","title":"golang"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:96","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"debug","msg":"Title found","time":"2022-05-02T10:13:23+02:00","title":"golang"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:110","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"debug","msg":"Disable 'exintro'...","time":"2022-05-02T10:13:23+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:122","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","id":4230561,"level":"info","msg":"Getting text extract...","time":"2022-05-02T10:13:23+02:00","title":"golang"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:82","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Setting http request parameters...","time":"2022-05-02T10:13:23+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:103","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Http request parameters set","params":{"explaintext":["1"],"exsectionformat":["plain"],"exsentences":["3"],"pageids":["4230561"],"prop":["extracts"]},"time":"2022-05-02T10:13:23+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:110","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Building http request...","params":{"explaintext":["1"],"exsectionformat":["plain"],"exsentences":["3"],"pageids":["4230561"],"prop":["extracts"]},"time":"2022-05-02T10:13:23+02:00","url":"https://fr.wikipedia.org/w/api.php","user-agent":"wpdia-go/0.0.8 (github.com/lescactus/wpdia-go) WikiClient/0.0.8"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:123","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Http request built","params":{"action":["query"],"explaintext":["1"],"exsectionformat":["plain"],"exsentences":["3"],"format":["json"],"pageids":["4230561"],"prop":["extracts"]},"time":"2022-05-02T10:13:23+02:00","url":"https://fr.wikipedia.org/w/api.php","user-agent":"wpdia-go/0.0.8 (github.com/lescactus/wpdia-go) WikiClient/0.0.8"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:127","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Sending http request...","time":"2022-05-02T10:13:23+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:136","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Http request sent","time":"2022-05-02T10:13:23+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:143","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Reading http response body and unmarshalling...","time":"2022-05-02T10:13:23+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/wpdia.go:153","func":"github.com/lescactus/wpdia-go/cmd.(*WikiClient).GetExtract","level":"debug","msg":"Http response body read and unmarshalled","time":"2022-05-02T10:13:23+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:138","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","id":4230561,"level":"debug","msg":"Text extract found","time":"2022-05-02T10:13:23+02:00","title":"golang"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:143","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"debug","msg":"Setting formatter...","time":"2022-05-02T10:13:23+02:00"}
+{"fields.level":"debug","file":"/home/amaldeme/gitclone/wpdia-go/cmd/root.go:160","func":"github.com/lescactus/wpdia-go/cmd.glob..func1","level":"debug","msg":"Formatter set to json","time":"2022-05-02T10:13:23+02:00"}
 {
     "pageid": 4230561,
     "ns": 0,
@@ -253,4 +357,4 @@ gofrontend, a frontend to other compilers, with the libgo library. With GCC the 
 
 - [x] Debug flag (show page id, ns, timestamps, etc...)
 
-- [ ] Verbose logs
+- [x] Verbose logs

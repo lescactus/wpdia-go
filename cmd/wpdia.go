@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -30,11 +32,21 @@ type WikiClient struct {
 // When the User-Agent is empty, it uses a default one.
 // It returns a WikiClient or any error encountered
 func NewWikiClient(baseURL, userAgent string) (*WikiClient, error) {
+	log.WithFields(logrus.Fields{
+		"level": logLevel,
+		"url":   baseURL,
+	}).Debug("Parsing base URL...")
+
 	// Ensure the base URL is valid
 	url, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
 	}
+
+	log.WithFields(logrus.Fields{
+		"level": logLevel,
+		"url":   baseURL,
+	}).Debug("Base URL Parsed")
 
 	// If empty, the User-Agent provided as a parameter will be set with a default value
 	// If not empty, the User-Agent provided as a parameter will be merged to the default one
@@ -44,6 +56,11 @@ func NewWikiClient(baseURL, userAgent string) (*WikiClient, error) {
 	} else {
 		ua = userAgent + defaultUserAgent
 	}
+
+	log.WithFields(logrus.Fields{
+		"level":      logLevel,
+		"User-Agent": ua,
+	}).Debug("User-Agent set")
 
 	return &WikiClient{
 		BaseURL:   url,
@@ -60,6 +77,10 @@ func NewWikiClient(baseURL, userAgent string) (*WikiClient, error) {
 // GetExtract will invoke the Wikipedia's TextExtracts's API to extract the text of the given page id.
 // It takes in argument the page id to request and will return the response or any error encountered.
 func (w *WikiClient) GetExtract(id uint64) (*WikiTextExtractResponse, error) {
+	log.WithFields(logrus.Fields{
+		"level": logLevel,
+	}).Debug("Setting http request parameters...")
+
 	params := url.Values{}
 
 	params.Add("prop", "extracts")
@@ -76,25 +97,60 @@ func (w *WikiClient) GetExtract(id uint64) (*WikiTextExtractResponse, error) {
 		params.Add("exsentences", exsentences)
 	}
 
+	log.WithFields(logrus.Fields{
+		"level":  logLevel,
+		"params": params,
+	}).Debug("Http request parameters set")
+
+	log.WithFields(logrus.Fields{
+		"level":      logLevel,
+		"params":     params,
+		"url":        w.BaseURL.String(),
+		"user-agent": w.UserAgent,
+	}).Debug("Building http request...")
+
 	// Build http request
 	req, err := wikiRequestBuilder(params, w.BaseURL.String(), w.UserAgent)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("error while building http request: %v", err))
 	}
 
+	log.WithFields(logrus.Fields{
+		"level":      logLevel,
+		"params":     params,
+		"url":        w.BaseURL.String(),
+		"user-agent": w.UserAgent,
+	}).Debug("Http request built")
+
+	log.WithFields(logrus.Fields{
+		"level": logLevel,
+	}).Debug("Sending http request...")
+
 	resp, err := w.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
+	log.WithFields(logrus.Fields{
+		"level": logLevel,
+	}).Debug("Http request sent")
+
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+
+	log.WithFields(logrus.Fields{
+		"level": logLevel,
+	}).Debug("Reading http response body and unmarshalling...")
 
 	var r WikiTextExtractResponse
 	err = json.Unmarshal(body, &r)
 	if err != nil {
 		return nil, err
 	}
+
+	log.WithFields(logrus.Fields{
+		"level": logLevel,
+	}).Debug("Http response body read and unmarshalled")
 
 	return &r, nil
 }
