@@ -122,10 +122,16 @@ func TestPlainFormatWrite(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "With full output",
-			d:       NewPlainFormat(),
-			args:    args{p: &page, full: true},
-			wantW:   fmt.Sprintf("Title:\n  %s\n\nNs:\n  %d\n\nPageid:\n  %d\n\nExtract:\n  %s", page.Title, *page.Ns, *page.Pageid, page.Extract),
+			name: "With full output",
+			d:    NewPlainFormat(),
+			args: args{p: &page, full: true},
+			wantW: fmt.Sprintf("Title:\n  %s\n\nNs:\n  %d\n\nPageid:\n  %d\n\nWikiBase Short Description:\n  %s\n\nWikiBase Item:\n  %s\n\nExtract:\n  %s",
+				page.Title,
+				*page.Ns,
+				*page.Pageid,
+				page.PageProps.WikiBaseShortDesc,
+				page.PageProps.WikiBaseItem,
+				page.Extract),
 			wantErr: false,
 		},
 	}
@@ -233,9 +239,13 @@ func TestJsonFormatWrite(t *testing.T) {
     "pageid": %d,
     "ns": %d,
     "title": "%s",
-    "extract": "%s"
+    "extract": "%s",
+    "pageprops": {
+        "wikibase-shortdesc": "%s",
+        "wikibase_item": "%s"
+    }
 }
-`, *page.Pageid, *page.Ns, page.Title, page.Extract),
+`, *page.Pageid, *page.Ns, page.Title, page.Extract, page.PageProps.WikiBaseShortDesc, page.PageProps.WikiBaseItem),
 			wantErr: false,
 		},
 		{
@@ -246,9 +256,13 @@ func TestJsonFormatWrite(t *testing.T) {
  "pageid": %d,
  "ns": %d,
  "title": "%s",
- "extract": "%s"
+ "extract": "%s",
+ "pageprops": {
+ "wikibase-shortdesc": "%s",
+ "wikibase_item": "%s"
  }
-`, *page.Pageid, *page.Ns, page.Title, page.Extract),
+ }
+`, *page.Pageid, *page.Ns, page.Title, page.Extract, page.PageProps.WikiBaseShortDesc, page.PageProps.WikiBaseItem),
 			wantErr: false,
 		},
 	}
@@ -306,8 +320,11 @@ ns: %d
 title: %s
 extract: Go is a statically typed, compiled programming language designed at Google
   by Robert Griesemer, Rob Pike, and Ken Thompson.
+pageprops:
+  wikibase-shortdesc: %s
+  wikibase_item: %s
 
-`, *page.Pageid, *page.Ns, page.Title),
+`, *page.Pageid, *page.Ns, page.Title, page.PageProps.WikiBaseShortDesc, page.PageProps.WikiBaseItem),
 			wantErr: false,
 		},
 	}
