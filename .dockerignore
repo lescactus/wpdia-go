@@ -51,6 +51,7 @@ Thumbs.db
 # Builds
 main
 wpdia-go
+dist/
 
 # Misc
 *.bak

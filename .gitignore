@@ -56,3 +56,4 @@ wpdia-go
 *.bak
 *.swp
 *.json
+dist/
