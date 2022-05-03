@@ -60,3 +60,6 @@ dist/
 *.yaml
 *.yml
 Dockerfile
+.github/
+.vscode/
+*.md

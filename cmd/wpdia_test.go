@@ -230,3 +230,42 @@ func TestNewWikiClient(t *testing.T) {
 		})
 	}
 }
+
+func TestWikiExtractRequestParamsBuilder(t *testing.T) {
+	type args struct {
+		exintro bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want url.Values
+	}{
+		{
+			name: "Exintro set to true",
+			args: args{exintro: true},
+			want: url.Values{
+				"explaintext":     []string{"1"},
+				"exsectionformat": []string{"plain"},
+				"prop":            []string{"extracts|pageprops"},
+				"exintro":         []string{"1"},
+			},
+		},
+		{
+			name: "Exintro set to false",
+			args: args{exintro: false},
+			want: url.Values{
+				"explaintext":     []string{"1"},
+				"exsectionformat": []string{"plain"},
+				"prop":            []string{"extracts|pageprops"},
+				"exsentences":     []string{"10"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := wikiExtractRequestParamsBuilder(tt.args.exintro)
+
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
