@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	version = "0.0.10"
+	version = "0.1.0"
 )
 
 var (
@@ -30,6 +30,8 @@ var (
 	log       *logrus.Logger
 	logLevel  string
 	logFormat string
+
+	randomPage bool // whether or not to look for a random page
 
 	// validOutputs represents the authorized values for the 'output' flag
 	validOutputs = []string{"plain", "pretty", "json", "yaml"}
@@ -56,11 +58,21 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 		// Ensure the 'output' and 'loglevel' flags values are valid
 		PreRunE: validateFlags,
 
-		// Only one argument is allowed
-		Args: cobra.ExactArgs(1),
-
 		// Main work function
 		Run: func(cmd *cobra.Command, args []string) {
+			var title string
+
+			// When the '--random' flag is set, we don't need anything in argument
+			// Oherwise we do
+			if randomPage {
+				if len(args) > 0 {
+					log.WithFields(logrus.Fields{
+						"level": logLevel,
+					}).Warn(fmt.Sprintf("The --random is set, the given arguments will be ignored: %v", args))
+				}
+			} else {
+				title = args[0]
+			}
 
 			log.WithFields(logrus.Fields{
 				"level": logLevel,
@@ -69,7 +81,6 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 
 			w, err := NewWikiClient(APIBaseURL, "")
 			if err != nil {
-				//fmt.Fprintln(os.Stderr, err)
 				log.SetOutput(os.Stderr)
 				log.WithFields(logrus.Fields{
 					"level": logLevel,
@@ -85,39 +96,7 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 
 			log.WithFields(logrus.Fields{
 				"level": logLevel,
-				"title": args[0],
-			}).Info("Searching title...")
-
-			// Get the id of the page requested
-			id, err := w.SearchTitle(args[0])
-			if err != nil {
-				log.SetOutput(os.Stderr)
-				log.WithFields(logrus.Fields{
-					"level": logLevel,
-					"url":   APIBaseURL,
-					"title": args[0],
-				}).Error(err)
-				os.Exit(1)
-			}
-
-			log.WithFields(logrus.Fields{
-				"level": logLevel,
-				"title": args[0],
-			}).Debug("Title found")
-
-			// If the search was unsuccessful
-			if id == 0 {
-				log.SetOutput(os.Stderr)
-				log.WithFields(logrus.Fields{
-					"level": logLevel,
-					"title": args[0],
-				}).Error("Error: no page found on Wikipedia for the given query")
-				os.Exit(1)
-			}
-
-			log.WithFields(logrus.Fields{
-				"level": logLevel,
-			}).Debug("Disable 'exintro'...")
+			}).Debug("Disabling 'exintro'...")
 
 			// User has set 'exsentences' which is mutually exclusive with 'exintro'
 			// Disable 'exintro'
@@ -126,35 +105,92 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 			}
 
 			log.WithFields(logrus.Fields{
-				"level": logLevel,
-				"title": args[0],
-				"id":    id,
+				"level":  logLevel,
+				"title":  title,
+				"random": randomPage,
 			}).Info("Getting text extract...")
 
-			extract, err := w.GetExtract(id)
+			var extract *WikiTextExtractResponse
+			if randomPage {
+				// Call the Random API
+				extract, err = w.GetExtractRandom()
+			} else {
+				log.WithFields(logrus.Fields{
+					"level": logLevel,
+					"title": title,
+				}).Info("Searching title...")
+
+				// Get the id of the page requested
+				var id uint64
+				id, err = w.SearchTitle(title)
+				if err != nil {
+					log.SetOutput(os.Stderr)
+					log.WithFields(logrus.Fields{
+						"level": logLevel,
+						"url":   APIBaseURL,
+						"title": title,
+					}).Error(err)
+					os.Exit(1)
+				}
+
+				log.WithFields(logrus.Fields{
+					"level": logLevel,
+					"title": title,
+				}).Debug("Title found")
+
+				// If the search was unsuccessful
+				if id == 0 {
+					log.SetOutput(os.Stderr)
+					log.WithFields(logrus.Fields{
+						"level": logLevel,
+						"title": title,
+					}).Error("Error: no page found on Wikipedia for the given query")
+					os.Exit(1)
+				}
+
+				// Call the TextExtracts API for the requested page id
+				extract, err = w.GetExtract(id)
+			}
+
 			if err != nil {
 				log.SetOutput(os.Stderr)
 				log.WithFields(logrus.Fields{
-					"level": logLevel,
-					"id":    id,
+					"level":  logLevel,
+					"title":  title,
+					"random": randomPage,
 				}).Errorf("Error: %s", err.Error())
 				os.Exit(1)
 			}
 
 			log.WithFields(logrus.Fields{
-				"level": logLevel,
-				"title": args[0],
-				"id":    id,
+				"level":  logLevel,
+				"title":  title,
+				"random": randomPage,
 			}).Debug("Text extract found")
-			page := extract.Query.Pages[fmt.Sprint(id)]
+
+			// Because we request only 1 page from Wikipedia's API,
+			// extract.Query.Pages **should be** a map of only one element
+			// If it is unexpectedly not the case, exit the program immediately with an error.
+			if len(extract.Query.Pages) != 1 {
+				log.SetOutput(os.Stderr)
+				log.WithFields(logrus.Fields{
+					"level": logLevel,
+				}).Fatal(fmt.Sprintf("Expected an anwser of 1 page, got %d", len(extract.Query.Pages)))
+				os.Exit(1)
+			}
+
+			var page Page
+			for _, v := range extract.Query.Pages {
+				page = v
+			}
 
 			// Ensure the page isn't a disambiguation
 			// In the case it is, simply print a message saying to refine the search
 			if page.IsDisambiguation() {
 				log.WithFields(logrus.Fields{
 					"level": logLevel,
-					"title": args[0],
-					"id":    id,
+					"title": title,
+					"id":    *page.Pageid,
 				}).Warn("The requested page is a disambiguation page")
 
 				page.Extract = `/!\ The requested page is a disambiguation page /!\
@@ -220,6 +256,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&fullOutput, "full", "f", false, "Also print the page Namespace and page ID.")
 	rootCmd.PersistentFlags().StringVarP(&logLevel, "loglevel", "e", "error", fmt.Sprintf("Log level verbosity. Accepted values are %v.", validLogLevels))
 	rootCmd.PersistentFlags().StringVarP(&logFormat, "logformat", "a", "text", fmt.Sprintf("Log format. Accepted values are %v.", validLogFormats))
+	rootCmd.PersistentFlags().BoolVarP(&randomPage, "random", "r", false, "Return a random article.")
 
 	cobra.OnInitialize(initConfig, setLogger)
 }
@@ -254,4 +291,13 @@ func validateFlags(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+// hasOneArg will verify whether the slice passed in agument contains only one element.
+// It will return true if the slice contains only one element, false otherwise.
+func hasOneArg(args []string) bool {
+	if len(args) != 1 {
+		return false
+	}
+	return true
 }

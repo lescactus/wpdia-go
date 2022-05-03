@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -59,7 +59,7 @@ func NewWikiClient(baseURL, userAgent string) (*WikiClient, error) {
 
 	log.WithFields(logrus.Fields{
 		"level":      logLevel,
-		"User-Agent": ua,
+		"user-agent": ua,
 	}).Debug("User-Agent set")
 
 	return &WikiClient{
@@ -81,27 +81,50 @@ func (w *WikiClient) GetExtract(id uint64) (*WikiTextExtractResponse, error) {
 		"level": logLevel,
 	}).Debug("Setting http request parameters...")
 
-	params := url.Values{}
-
-	params.Add("prop", "extracts|pageprops")
-	params.Add("pageids", fmt.Sprint(id))
-	params.Add("explaintext", "1")
-	params.Add("exsectionformat", "plain")
-
-	// 'exintro' is mutually exclusive with 'exsentences'
-	// Either we return only the content before the first section
-	// or we return a given number of sentences
-	if exintro {
-		params.Add("exintro", "1")
-	} else {
-		params.Add("exsentences", exsentences)
-	}
+	params := wikiExtractRequestParamsBuilder(exintro)
+	params.Add("pageids", fmt.Sprintf("%d", id))
 
 	log.WithFields(logrus.Fields{
 		"level":  logLevel,
 		"params": params,
 	}).Debug("Http request parameters set")
 
+	return w.do(params)
+}
+
+// GetExtractRandom will invoke the Wikipedia's Random API to fetch the content of a random article.
+// It takes no argument and will return the response or any error encountered.
+func (w *WikiClient) GetExtractRandom() (*WikiTextExtractResponse, error) {
+	log.WithFields(logrus.Fields{
+		"level": logLevel,
+	}).Debug("Setting http request parameters...")
+
+	params := wikiExtractRequestParamsBuilder(exintro)
+
+	// When requesting a random page,
+	// 'genarator=random' parameter must be set
+	// 'genarator=random' provide a set of random pages
+	params.Add("generator", "random")
+	// Namespace 0 is 'Articles'. ref: https://www.mediawiki.org/wiki/Manual:Namespace
+	params.Add("grnnamespace", "0")
+	// Limit to only 1 random page returned
+	params.Add("grnlimit", "1")
+
+	log.WithFields(logrus.Fields{
+		"level":  logLevel,
+		"params": params,
+	}).Debug("Http request parameters set")
+
+	return w.do(params)
+}
+
+// do will build a http request with the given http request parameters as arguments,
+// execute it and unmarshal the response to a *WikiTextExtractResponse.
+// It will use the embedded BaseURL and User-Agent.
+// It will take care of reading the body response and to close it.
+//
+// The function takes as argument a set of url query parameters and will return the response or any error encountered.
+func (w *WikiClient) do(params url.Values) (*WikiTextExtractResponse, error) {
 	log.WithFields(logrus.Fields{
 		"level":      logLevel,
 		"params":     params,
@@ -126,6 +149,7 @@ func (w *WikiClient) GetExtract(id uint64) (*WikiTextExtractResponse, error) {
 		"level": logLevel,
 	}).Debug("Sending http request...")
 
+	// Execute the http request
 	resp, err := w.Client.Do(req)
 	if err != nil {
 		return nil, err
@@ -136,7 +160,7 @@ func (w *WikiClient) GetExtract(id uint64) (*WikiTextExtractResponse, error) {
 	}).Debug("Http request sent")
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 
 	log.WithFields(logrus.Fields{
 		"level": logLevel,
@@ -153,6 +177,7 @@ func (w *WikiClient) GetExtract(id uint64) (*WikiTextExtractResponse, error) {
 	}).Debug("Http response body read and unmarshalled")
 
 	return &r, nil
+
 }
 
 // SearchTitle will invoke the Wikipedia's Search API to lookup for the given title.
@@ -218,7 +243,7 @@ func (w *WikiClient) SearchTitle(title string) (uint64, error) {
 	}).Debug("Reading http response body and unmarshalling...")
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 
 	var s WikiSearchResponse
 	err = json.Unmarshal(body, &s)
@@ -281,4 +306,29 @@ func wikiRequestBuilder(params url.Values, baseURL, userAgent string) (*http.Req
 	req.Header.Set("Content-Type", "multipart/form-data")
 
 	return req, nil
+}
+
+// wikiExtractRequestParamsBuilder is used to provide some base http parameters for the TextExtract API.
+// It will create a url.Values with the required properties for extracting text.
+// The documentation can be found here: https://www.mediawiki.org/wiki/Extension:TextExtracts#API
+//
+// The function takes as argument a boolean value indicating whether or not only requesting the content before the first section
+// and will returns a url.Values.
+func wikiExtractRequestParamsBuilder(exintro bool) url.Values {
+	params := url.Values{}
+
+	params.Add("explaintext", "1")
+	params.Add("exsectionformat", "plain")
+	params.Add("prop", "extracts|pageprops")
+
+	// 'exintro' is mutually exclusive with 'exsentences'
+	// Either we return only the content before the first section
+	// or we return a given number of sentences
+	if exintro {
+		params.Add("exintro", "1")
+	} else {
+		params.Add("exsentences", exsentences)
+	}
+
+	return params
 }
