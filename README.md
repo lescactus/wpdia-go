@@ -53,11 +53,11 @@ docker run --rm -it --name wpdia-go ghcr.io/lescactus/wpdia-go
 
 ### Requirements
 
-* Golang 1.16 or higher
+* Golang 1.17 or higher
 
 ### From source with go
 
-You need a working [go](https://golang.org/doc/install) toolchain (It has been developped and tested with go >= 1.16). Refer to the official documentation for more information (or from your Linux/Mac/Windows distribution documentation to install it from your favorite package manager).
+You need a working [go](https://golang.org/doc/install) toolchain (It has been developped and tested with go >= 1.17). Refer to the official documentation for more information (or from your Linux/Mac/Windows distribution documentation to install it from your favorite package manager).
 
 ```sh
 # Clone this repository
