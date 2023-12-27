@@ -39,6 +39,22 @@ Flags:
 ```
 ## Installation
 
+Prebuilt binaries can be downloaded from the GitHub Releases [section](https://github.com/lescactus/wpdia-go/releases), or using a Docker image from the Github Container Registry.
+
+### Running with Docker
+
+```bash
+docker run --rm -it --name wpdia-go ghcr.io/lescactus/wpdia-go
+```
+
+## Building
+
+<details>
+
+### Requirements
+
+* Golang 1.16 or higher
+
 ### From source with go
 
 You need a working [go](https://golang.org/doc/install) toolchain (It has been developped and tested with go 1.16 and go 1.16 only, but should work with go >= 1.14). Refer to the official documentation for more information (or from your Linux/Mac/Windows distribution documentation to install it from your favorite package manager).
@@ -78,6 +94,8 @@ docker build -t wpdia-go .
 
 docker run --rm wpdia-go "Rammstein"
 ```
+
+</details>
 
 ## Disambiguation pages
 
