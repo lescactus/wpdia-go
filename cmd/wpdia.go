@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -135,7 +134,7 @@ func (w *WikiClient) do(params url.Values) (*WikiTextExtractResponse, error) {
 	// Build http request
 	req, err := wikiRequestBuilder(params, w.BaseURL.String(), w.UserAgent)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("error while building http request: %v", err))
+		return nil, fmt.Errorf("error while building http request: %v", err)
 	}
 
 	log.WithFields(logrus.Fields{
@@ -161,6 +160,9 @@ func (w *WikiClient) do(params url.Values) (*WikiTextExtractResponse, error) {
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
 
 	log.WithFields(logrus.Fields{
 		"level": logLevel,
@@ -185,7 +187,6 @@ func (w *WikiClient) do(params url.Values) (*WikiTextExtractResponse, error) {
 // result if found. If the search doesn't return any result, the function return 0 or
 // any error encountered.
 func (w *WikiClient) SearchTitle(title string) (uint64, error) {
-
 	params := url.Values{}
 
 	// Documentation about the search API: https://www.mediawiki.org/wiki/API:Search
@@ -215,7 +216,7 @@ func (w *WikiClient) SearchTitle(title string) (uint64, error) {
 	// Build http request
 	req, err := wikiRequestBuilder(params, w.BaseURL.String(), w.UserAgent)
 	if err != nil {
-		return 0, errors.New(fmt.Sprintf("error while building http request: %v", err))
+		return 0, fmt.Errorf("error while building http request: %v", err)
 	}
 
 	log.WithFields(logrus.Fields{
@@ -244,6 +245,9 @@ func (w *WikiClient) SearchTitle(title string) (uint64, error) {
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, fmt.Errorf("failed to read response body: %w", err)
+	}
 
 	var s WikiSearchResponse
 	err = json.Unmarshal(body, &s)
