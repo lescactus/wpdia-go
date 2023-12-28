@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -12,7 +11,7 @@ import (
 )
 
 const (
-	version = "0.1.0"
+	version = "0.4.1"
 )
 
 var (
@@ -58,6 +57,8 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 		// Ensure the 'output' and 'loglevel' flags values are valid
 		PreRunE: validateFlags,
 
+		Args: cobra.ExactArgs(1),
+
 		// Main work function
 		Run: func(cmd *cobra.Command, args []string) {
 			var title string
@@ -68,7 +69,7 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 				if len(args) > 0 {
 					log.WithFields(logrus.Fields{
 						"level": logLevel,
-					}).Warn(fmt.Sprintf("The --random is set, the given arguments will be ignored: %v", args))
+					}).Warn(fmt.Sprintf("The --random flag is set, the given arguments will be ignored: %v", args))
 				}
 			} else {
 				title = args[0]
@@ -279,15 +280,15 @@ func setLogger() {
 // It exit the program with an error if not.
 func validateFlags(cmd *cobra.Command, args []string) error {
 	if !isPresent(validOutputs, output) {
-		return errors.New(fmt.Sprintf("error: invalid value for flag 'output'. Valid values are %v", validOutputs))
+		return fmt.Errorf("error: invalid value for flag 'output'. Valid values are %v", validOutputs)
 	}
 
 	if !isPresent(validLogLevels, logLevel) {
-		return errors.New(fmt.Sprintf("error: invalid value for flag 'loglevel'. Valid values are %v", validLogLevels))
+		return fmt.Errorf("error: invalid value for flag 'loglevel'. Valid values are %v", validLogLevels)
 	}
 
 	if !isPresent(validLogFormats, logFormat) {
-		return errors.New(fmt.Sprintf("error: invalid value for flag 'logformat'. Valid values are %v", validLogFormats))
+		return fmt.Errorf("error: invalid value for flag 'logformat'. Valid values are %v", validLogFormats)
 	}
 
 	return nil
@@ -296,8 +297,5 @@ func validateFlags(cmd *cobra.Command, args []string) error {
 // hasOneArg will verify whether the slice passed in agument contains only one element.
 // It will return true if the slice contains only one element, false otherwise.
 func hasOneArg(args []string) bool {
-	if len(args) != 1 {
-		return false
-	}
-	return true
+	return len(args) == 1
 }

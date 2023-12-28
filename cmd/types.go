@@ -60,8 +60,5 @@ type WikiPageProps struct {
 // IsDisambiguation will verify whether the page is a disambiguation page or not.
 // It returns true if yes, false otherwise.
 func (p *Page) IsDisambiguation() bool {
-	if p.PageProps.Disambiguation == nil {
-		return false
-	}
-	return true
+	return p.PageProps.Disambiguation != nil
 }
