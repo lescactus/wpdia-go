@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
-
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -31,10 +30,7 @@ type WikiClient struct {
 // When the User-Agent is empty, it uses a default one.
 // It returns a WikiClient or any error encountered
 func NewWikiClient(baseURL, userAgent string) (*WikiClient, error) {
-	log.WithFields(logrus.Fields{
-		"level": logLevel,
-		"url":   baseURL,
-	}).Debug("Parsing base URL...")
+	logger.Debug("Parsing base URL...", slog.String("url", baseURL))
 
 	// Ensure the base URL is valid
 	url, err := url.Parse(baseURL)
@@ -42,10 +38,7 @@ func NewWikiClient(baseURL, userAgent string) (*WikiClient, error) {
 		return nil, err
 	}
 
-	log.WithFields(logrus.Fields{
-		"level": logLevel,
-		"url":   baseURL,
-	}).Debug("Base URL Parsed")
+	logger.Debug("Base URL parsed", slog.String("url", baseURL))
 
 	// If empty, the User-Agent provided as a parameter will be set with a default value
 	// If not empty, the User-Agent provided as a parameter will be merged to the default one
@@ -56,10 +49,7 @@ func NewWikiClient(baseURL, userAgent string) (*WikiClient, error) {
 		ua = userAgent + defaultUserAgent
 	}
 
-	log.WithFields(logrus.Fields{
-		"level":      logLevel,
-		"user-agent": ua,
-	}).Debug("User-Agent set")
+	logger.Debug("User-Agent set", slog.String("user-agent", ua))
 
 	return &WikiClient{
 		BaseURL:   url,
@@ -76,17 +66,12 @@ func NewWikiClient(baseURL, userAgent string) (*WikiClient, error) {
 // GetExtract will invoke the Wikipedia's TextExtracts's API to extract the text of the given page id.
 // It takes in argument the page id to request and will return the response or any error encountered.
 func (w *WikiClient) GetExtract(id uint64) (*WikiTextExtractResponse, error) {
-	log.WithFields(logrus.Fields{
-		"level": logLevel,
-	}).Debug("Setting http request parameters...")
+	logger.Debug("Setting http request parameters...")
 
 	params := wikiExtractRequestParamsBuilder(exintro)
 	params.Add("pageids", fmt.Sprintf("%d", id))
 
-	log.WithFields(logrus.Fields{
-		"level":  logLevel,
-		"params": params,
-	}).Debug("Http request parameters set")
+	logger.Debug("Http request parameters set", slog.Any("params", params))
 
 	return w.do(params)
 }
@@ -94,9 +79,7 @@ func (w *WikiClient) GetExtract(id uint64) (*WikiTextExtractResponse, error) {
 // GetExtractRandom will invoke the Wikipedia's Random API to fetch the content of a random article.
 // It takes no argument and will return the response or any error encountered.
 func (w *WikiClient) GetExtractRandom() (*WikiTextExtractResponse, error) {
-	log.WithFields(logrus.Fields{
-		"level": logLevel,
-	}).Debug("Setting http request parameters...")
+	logger.Debug("Setting http request parameters...")
 
 	params := wikiExtractRequestParamsBuilder(exintro)
 
@@ -109,10 +92,7 @@ func (w *WikiClient) GetExtractRandom() (*WikiTextExtractResponse, error) {
 	// Limit to only 1 random page returned
 	params.Add("grnlimit", "1")
 
-	log.WithFields(logrus.Fields{
-		"level":  logLevel,
-		"params": params,
-	}).Debug("Http request parameters set")
+	logger.Debug("Http request parameters set", slog.Any("params", params))
 
 	return w.do(params)
 }
@@ -124,39 +104,22 @@ func (w *WikiClient) GetExtractRandom() (*WikiTextExtractResponse, error) {
 //
 // The function takes as argument a set of url query parameters and will return the response or any error encountered.
 func (w *WikiClient) do(params url.Values) (*WikiTextExtractResponse, error) {
-	log.WithFields(logrus.Fields{
-		"level":      logLevel,
-		"params":     params,
-		"url":        w.BaseURL.String(),
-		"user-agent": w.UserAgent,
-	}).Debug("Building http request...")
+	logger.Debug("Building http request...", slog.Any("params", params), slog.String("url", w.BaseURL.String()), slog.String("user-agent", w.UserAgent))
 
 	// Build http request
 	req, err := wikiRequestBuilder(params, w.BaseURL.String(), w.UserAgent)
 	if err != nil {
 		return nil, fmt.Errorf("error while building http request: %v", err)
 	}
+	logger.Debug("Http request built", slog.Any("params", params), slog.String("url", w.BaseURL.String()), slog.String("user-agent", w.UserAgent))
 
-	log.WithFields(logrus.Fields{
-		"level":      logLevel,
-		"params":     params,
-		"url":        w.BaseURL.String(),
-		"user-agent": w.UserAgent,
-	}).Debug("Http request built")
-
-	log.WithFields(logrus.Fields{
-		"level": logLevel,
-	}).Debug("Sending http request...")
-
+	logger.Debug("Sending http request...")
 	// Execute the http request
 	resp, err := w.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}
-
-	log.WithFields(logrus.Fields{
-		"level": logLevel,
-	}).Debug("Http request sent")
+	logger.Debug("Http request sent")
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
@@ -164,9 +127,7 @@ func (w *WikiClient) do(params url.Values) (*WikiTextExtractResponse, error) {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	log.WithFields(logrus.Fields{
-		"level": logLevel,
-	}).Debug("Reading http response body and unmarshalling...")
+	logger.Debug("Reading http response body and unmarshalling...")
 
 	var r WikiTextExtractResponse
 	err = json.Unmarshal(body, &r)
@@ -174,9 +135,7 @@ func (w *WikiClient) do(params url.Values) (*WikiTextExtractResponse, error) {
 		return nil, err
 	}
 
-	log.WithFields(logrus.Fields{
-		"level": logLevel,
-	}).Debug("Http response body read and unmarshalled")
+	logger.Debug("Http response body read and unmarshalled")
 
 	return &r, nil
 
@@ -201,17 +160,9 @@ func (w *WikiClient) SearchTitle(title string) (uint64, error) {
 	params.Add("utf8", "1")
 	params.Add("srsearch", title)
 
-	log.WithFields(logrus.Fields{
-		"level":  logLevel,
-		"params": params,
-	}).Debug("Http request parameters set")
+	logger.Debug("Http request parameters set", slog.Any("params", params))
 
-	log.WithFields(logrus.Fields{
-		"level":      logLevel,
-		"params":     params,
-		"url":        w.BaseURL.String(),
-		"user-agent": w.UserAgent,
-	}).Debug("Building http request...")
+	logger.Debug("Building http request...", slog.Any("params", params), slog.String("url", w.BaseURL.String()), slog.String("user-agent", w.UserAgent))
 
 	// Build http request
 	req, err := wikiRequestBuilder(params, w.BaseURL.String(), w.UserAgent)
@@ -219,29 +170,18 @@ func (w *WikiClient) SearchTitle(title string) (uint64, error) {
 		return 0, fmt.Errorf("error while building http request: %v", err)
 	}
 
-	log.WithFields(logrus.Fields{
-		"level":      logLevel,
-		"params":     params,
-		"url":        w.BaseURL.String(),
-		"user-agent": w.UserAgent,
-	}).Debug("Http request built")
+	logger.Debug("Http request built", slog.Any("params", params), slog.String("url", w.BaseURL.String()), slog.String("user-agent", w.UserAgent))
 
-	log.WithFields(logrus.Fields{
-		"level": logLevel,
-	}).Debug("Sending http request...")
+	logger.Debug("Sending http request...")
 
 	resp, err := w.Client.Do(req)
 	if err != nil {
 		return 0, err
 	}
 
-	log.WithFields(logrus.Fields{
-		"level": logLevel,
-	}).Debug("Http request sent")
+	logger.Debug("Http request sent...")
 
-	log.WithFields(logrus.Fields{
-		"level": logLevel,
-	}).Debug("Reading http response body and unmarshalling...")
+	logger.Debug("Reading http response body and unmarshalling..")
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
@@ -252,25 +192,18 @@ func (w *WikiClient) SearchTitle(title string) (uint64, error) {
 	var s WikiSearchResponse
 	err = json.Unmarshal(body, &s)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to unmarshall response body: %w", err)
 	}
 
-	log.WithFields(logrus.Fields{
-		"level": logLevel,
-	}).Debug("Http response body read and unmarshalled")
+	logger.Debug("Http response body read and unmarshalled")
 
 	// Query.Search[] will be empty if the search doesn't match anything
 	if len(s.Query.Search) == 0 {
-		log.WithFields(logrus.Fields{
-			"level": logLevel,
-		}).Warn("Search didn't match anything")
+		logger.Warn("Search didn't match anything")
 		return 0, nil
 	}
 
-	log.WithFields(logrus.Fields{
-		"level":  logLevel,
-		"pageid": s.Query.Search[0].Pageid,
-	}).Info("Search found a Page ID")
+	logger.Info("Search found a Page ID", slog.Uint64("pageid", s.Query.Search[0].Pageid))
 
 	// We only care about the first result
 	return s.Query.Search[0].Pageid, nil

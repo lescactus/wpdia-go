@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"time"
 
-	"github.com/lescactus/wpdia-go/internal/logger"
-	"github.com/sirupsen/logrus"
+	internallogger "github.com/lescactus/wpdia-go/internal/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,7 @@ var (
 	exintro     bool          // whether or not to only the intro of a page
 	fullOutput  bool          // whether or not to output also the page namespace and page id
 
-	log       *logrus.Logger
+	logger    *slog.Logger
 	logLevel  string
 	logFormat string
 
@@ -57,7 +57,7 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 		// Ensure the 'output' and 'loglevel' flags values are valid
 		PreRunE: validateFlags,
 
-		Args: cobra.ExactArgs(1),
+		Args: cobra.RangeArgs(0, 1),
 
 		// Main work function
 		Run: func(cmd *cobra.Command, args []string) {
@@ -67,37 +67,22 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 			// Oherwise we do
 			if randomPage {
 				if len(args) > 0 {
-					log.WithFields(logrus.Fields{
-						"level": logLevel,
-					}).Warn(fmt.Sprintf("The --random flag is set, the given arguments will be ignored: %v", args))
+					logger.Warn(fmt.Sprintf("The --random flag is set, the given arguments will be ignored: %v", args))
 				}
 			} else {
 				title = args[0]
 			}
 
-			log.WithFields(logrus.Fields{
-				"level": logLevel,
-				"url":   APIBaseURL,
-			}).Info("Creating new Wiki client...")
+			logger.Info("Creating new Wiki client...", slog.String("url", APIBaseURL))
 
 			w, err := NewWikiClient(APIBaseURL, "")
 			if err != nil {
-				log.SetOutput(os.Stderr)
-				log.WithFields(logrus.Fields{
-					"level": logLevel,
-					"url":   APIBaseURL,
-				}).Error(err)
+				logger.Error(err.Error())
 				os.Exit(1)
 			}
+			logger.Debug("New Wiki client created", slog.String("url", APIBaseURL))
 
-			log.WithFields(logrus.Fields{
-				"level": logLevel,
-				"url":   APIBaseURL,
-			}).Debug("New Wiki client created")
-
-			log.WithFields(logrus.Fields{
-				"level": logLevel,
-			}).Debug("Disabling 'exintro'...")
+			logger.Debug("Disabling 'exintro'...")
 
 			// User has set 'exsentences' which is mutually exclusive with 'exintro'
 			// Disable 'exintro'
@@ -105,47 +90,28 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 				exintro = false
 			}
 
-			log.WithFields(logrus.Fields{
-				"level":  logLevel,
-				"title":  title,
-				"random": randomPage,
-			}).Info("Getting text extract...")
+			logger.Info("Getting text extract...", slog.String("title", title), slog.Bool("random", randomPage))
 
 			var extract *WikiTextExtractResponse
 			if randomPage {
 				// Call the Random API
 				extract, err = w.GetExtractRandom()
 			} else {
-				log.WithFields(logrus.Fields{
-					"level": logLevel,
-					"title": title,
-				}).Info("Searching title...")
+				logger.Info("Searching title...", slog.String("title", title))
 
 				// Get the id of the page requested
 				var id uint64
 				id, err = w.SearchTitle(title)
 				if err != nil {
-					log.SetOutput(os.Stderr)
-					log.WithFields(logrus.Fields{
-						"level": logLevel,
-						"url":   APIBaseURL,
-						"title": title,
-					}).Error(err)
+					logger.Error(err.Error(), slog.String("url", APIBaseURL), slog.String("title", title))
 					os.Exit(1)
 				}
 
-				log.WithFields(logrus.Fields{
-					"level": logLevel,
-					"title": title,
-				}).Debug("Title found")
+				logger.Debug("Title found")
 
 				// If the search was unsuccessful
 				if id == 0 {
-					log.SetOutput(os.Stderr)
-					log.WithFields(logrus.Fields{
-						"level": logLevel,
-						"title": title,
-					}).Error("Error: no page found on Wikipedia for the given query")
+					logger.Error("Error: no page found on Wikipedia for the given query", slog.String("title", title))
 					os.Exit(1)
 				}
 
@@ -154,29 +120,17 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 			}
 
 			if err != nil {
-				log.SetOutput(os.Stderr)
-				log.WithFields(logrus.Fields{
-					"level":  logLevel,
-					"title":  title,
-					"random": randomPage,
-				}).Errorf("Error: %s", err.Error())
+				logger.Info("Error: %s", slog.String("title", title), slog.Bool("random", randomPage))
 				os.Exit(1)
 			}
 
-			log.WithFields(logrus.Fields{
-				"level":  logLevel,
-				"title":  title,
-				"random": randomPage,
-			}).Debug("Text extract found")
+			logger.Debug("Text extract found", slog.String("title", title), slog.Bool("random", randomPage))
 
 			// Because we request only 1 page from Wikipedia's API,
 			// extract.Query.Pages **should be** a map of only one element
 			// If it is unexpectedly not the case, exit the program immediately with an error.
 			if len(extract.Query.Pages) != 1 {
-				log.SetOutput(os.Stderr)
-				log.WithFields(logrus.Fields{
-					"level": logLevel,
-				}).Fatal(fmt.Sprintf("Expected an anwser of 1 page, got %d", len(extract.Query.Pages)))
+				logger.Error(fmt.Sprintf("Expected an anwser of 1 page, got %d", len(extract.Query.Pages)))
 				os.Exit(1)
 			}
 
@@ -188,11 +142,7 @@ The source code is available at https://github.com/lescactus/wpedia-go.`,
 			// Ensure the page isn't a disambiguation
 			// In the case it is, simply print a message saying to refine the search
 			if page.IsDisambiguation() {
-				log.WithFields(logrus.Fields{
-					"level": logLevel,
-					"title": title,
-					"id":    *page.Pageid,
-				}).Warn("The requested page is a disambiguation page")
+				logger.Warn("The requested page is a disambiguation page", slog.String("title", title), slog.Int("id", *page.Pageid))
 
 				page.Extract = `/!\ The requested page is a disambiguation page /!\
 
@@ -203,9 +153,7 @@ Try to refine the search in a more precise manner. Example:
 	'Nancy France' instead of 'Nancy' - or 'Go verb' instead of 'Go'`
 			}
 
-			log.WithFields(logrus.Fields{
-				"level": logLevel,
-			}).Debug("Setting formatter...")
+			logger.Debug("Setting formatter...")
 
 			// Output formatter options
 			var d Displayer
@@ -219,18 +167,12 @@ Try to refine the search in a more precise manner. Example:
 			case "yaml":
 				d = NewYamlFormat()
 			}
-
-			log.WithFields(logrus.Fields{
-				"level": logLevel,
-			}).Debugf("Formatter set to %s", output)
+			logger.Debug(fmt.Sprintf("Formatter set to %s", output))
 
 			// Write extract to the terminal
 			d.Write(os.Stdout, &page, fullOutput)
 			if err != nil {
-				log.SetOutput(os.Stderr)
-				log.WithFields(logrus.Fields{
-					"level": logLevel,
-				}).Error(err)
+				logger.Error(err.Error())
 				os.Exit(1)
 			}
 		},
@@ -269,7 +211,7 @@ func initConfig() {
 
 func setLogger() {
 	var err error
-	log, err = logger.NewLogger(logLevel, logFormat)
+	logger, err = internallogger.New(logLevel, logFormat)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
