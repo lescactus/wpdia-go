@@ -1,16 +1,17 @@
 package cmd
 
 import (
+	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
 func init() {
-	log = logrus.New()
+	logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
 }
 
 var (

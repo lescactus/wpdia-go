@@ -1,16 +1,15 @@
 package logger
 
 import (
-	"os"
+	"log/slog"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	newLogger = logrus.New()
-)
+// var (
+// 	newLogger = slog.New(slog.NewTextHandler(os.Stderr, nil))
+// )
 
 func TestNewLogger(t *testing.T) {
 	type args struct {
@@ -18,10 +17,10 @@ func TestNewLogger(t *testing.T) {
 		format   string
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    *logrus.Logger
-		wantErr bool
+		name       string
+		args       args
+		wantLogger *slog.Logger
+		wantErr    bool
 	}{
 		{
 			name: "Loglevel: empty / Format: empty",
@@ -53,15 +52,8 @@ func TestNewLogger(t *testing.T) {
 				loglevel: "info",
 				format:   "invalid",
 			},
-			want: &logrus.Logger{
-				Out:          os.Stdout,
-				Formatter:    &logrus.TextFormatter{},
-				Hooks:        make(logrus.LevelHooks),
-				Level:        logrus.InfoLevel,
-				ExitFunc:     os.Exit,
-				ReportCaller: false,
-			},
-			wantErr: false,
+			wantLogger: &slog.Logger{},
+			wantErr:    false,
 		},
 		{
 			name: "Loglevel: info / Format: text",
@@ -69,15 +61,8 @@ func TestNewLogger(t *testing.T) {
 				loglevel: "info",
 				format:   "text",
 			},
-			want: &logrus.Logger{
-				Out:          os.Stdout,
-				Formatter:    &logrus.TextFormatter{},
-				Hooks:        make(logrus.LevelHooks),
-				Level:        logrus.InfoLevel,
-				ExitFunc:     os.Exit,
-				ReportCaller: false,
-			},
-			wantErr: false,
+			wantLogger: &slog.Logger{},
+			wantErr:    false,
 		},
 		{
 			name: "Loglevel: info / Format: json",
@@ -85,15 +70,8 @@ func TestNewLogger(t *testing.T) {
 				loglevel: "info",
 				format:   "json",
 			},
-			want: &logrus.Logger{
-				Out:          os.Stdout,
-				Formatter:    &logrus.JSONFormatter{},
-				Hooks:        make(logrus.LevelHooks),
-				Level:        logrus.InfoLevel,
-				ExitFunc:     os.Exit,
-				ReportCaller: false,
-			},
-			wantErr: false,
+			wantLogger: &slog.Logger{},
+			wantErr:    false,
 		},
 		{
 			name: "Loglevel: debug / Format: text",
@@ -101,27 +79,38 @@ func TestNewLogger(t *testing.T) {
 				loglevel: "debug",
 				format:   "text",
 			},
-			want: &logrus.Logger{
-				Out:          os.Stdout,
-				Formatter:    &logrus.TextFormatter{},
-				Hooks:        make(logrus.LevelHooks),
-				Level:        logrus.DebugLevel,
-				ExitFunc:     os.Exit,
-				ReportCaller: true,
+			wantLogger: &slog.Logger{},
+			wantErr:    false,
+		},
+		{
+			name: "Loglevel: warn / Format: text",
+			args: args{
+				loglevel: "warn",
+				format:   "text",
 			},
-			wantErr: false,
+			wantLogger: &slog.Logger{},
+			wantErr:    false,
+		},
+		{
+			name: "Loglevel: error / Format: text",
+			args: args{
+				loglevel: "error",
+				format:   "text",
+			},
+			wantLogger: &slog.Logger{},
+			wantErr:    false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewLogger(tt.args.loglevel, tt.args.format)
+			got, err := New(tt.args.loglevel, tt.args.format)
 
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
 			}
-			assert.ObjectsAreEqualValues(tt.want, got)
+			assert.ObjectsAreEqualValues(tt.wantLogger, got)
 		})
 	}
 }
