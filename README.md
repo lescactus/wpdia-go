@@ -53,11 +53,11 @@ docker run --rm -it --name wpdia-go ghcr.io/lescactus/wpdia-go
 
 ### Requirements
 
-* Golang 1.21 or higher
+* Golang 1.23 or higher
 
 ### From source with go
 
-You need a working [go](https://golang.org/doc/install) toolchain (It has been developped and tested with go >= 1.21). Refer to the official documentation for more information (or from your Linux/Mac/Windows distribution documentation to install it from your favorite package manager).
+You need a working [go](https://golang.org/doc/install) toolchain (It has been developped and tested with go >= 1.23). Refer to the official documentation for more information (or from your Linux/Mac/Windows distribution documentation to install it from your favorite package manager).
 
 ```sh
 # Clone this repository
@@ -78,7 +78,7 @@ If you don't have [go](https://golang.org/) installed but have docker, run the f
 ```sh
 # Build from sources inside a docker container. Use the '-o' flag to change the compiled binary name
 # Warning: the compiled binary belongs to root:root
-docker run --rm -it -v "$PWD":/app -w /app golang:1.22 go build
+docker run --rm -it -v "$PWD":/app -w /app golang:1.23 go build -buildvcs=false
 
 # Default compiled binary is dict-go
 # You can optionnaly move it somewhere in your $PATH to access it shell wide
