@@ -1,7 +1,6 @@
 module github.com/lescactus/wpdia-go
 
-go 1.21
-toolchain go1.23.7
+go 1.23.0
 
 require (
 	github.com/charmbracelet/glamour v0.8.0
