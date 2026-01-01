@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/charmbracelet/glamour v0.10.0
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 	gopkg.in/yaml.v2 v2.4.0
 )
